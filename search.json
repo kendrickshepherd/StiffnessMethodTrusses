@@ -1,0 +1,44 @@
+[
+  {
+    "objectID": "Truss_Stiffness.html",
+    "href": "Truss_Stiffness.html",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "",
+    "text": "The stiffness method is regularly used in the analysis of both statically determinate and indeterminate structures. While the method follows a clear set of steps, the process can feel long, confusing, and difficult at first. It also requires the use of linear algebra, which may feel daunting upon seeing it for the first time. The purpose of this interactive documentation is to help you gain confidence with using the stiffness method by allowing you to explore each of the steps of the method both on a member-by-member basis and for the structure as a whole.\nSelect a predefined truss for evaluation. Then, input material and section properties and prescribe loads on the nodes. Afterwards, click on a particular member to see how its length, orientation, and Young’s modulus affect its local stiffness matrices and ultimately its contribution to the global system of equations. You can also see how various loads and prescribed displacements influence resulting unknown reactions and displacements. Finally, after computing global unknowns, you can see their influence on your selected member’s forces at the bottom of the document.\n\n\n\n\n\n\nTip\n\n\n\nAdjust Units per pixel and Units label to convert your computer’s pixel lengths into your preferred units (e.g., meters)."
+  },
+  {
+    "objectID": "Truss_Stiffness.html#controls-readout",
+    "href": "Truss_Stiffness.html#controls-readout",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "Controls & Readout",
+    "text": "Controls & Readout\n\nTruss: \n\n\n\n\n\nUnits per pixel: \nUnits label: \nE (Young’s modulus):  \nA (Area):  \nApply EA/L to matrix entries: \n\nActive member: —\nL: — px\n\\(\\mathbf{\\theta}\\): —°\n\\(\\lambda_x\\): — \\(\\lambda_y\\): —\n\n\n  Nodal loads\n\n    \n    \n    Show node labels\n    \n\n  \n  \n\n  \n    Arrow scale:  px per unit\n    Force units: \n    Displacement units: \n    Clear all\n  \n\n\nElement Stiffness Matrix: Local Coordinate System\n\\[\\begin{equation}\n\\mathbf{k}'_e = \\dfrac{EA}{L}\n\\begin{bmatrix}\n1 & -1 \\\\\n-1 & 1\n\\end{bmatrix}\n\\end{equation}\\]\n\n\nDisplacement Transformation Matrix\n\\[\\begin{equation}\n\\mathbf{T}_e =\n\\begin{bmatrix}\n\\lambda_x & \\lambda_y & 0 & 0 \\\\\n0 & 0 & \\lambda_x & \\lambda_y\n\\end{bmatrix}\n\\end{equation}\\]\n\n\nForce Transformation Matrix\n\\[\\begin{equation}\n\\mathbf{T}^T_e =\n\\begin{bmatrix}\n\\lambda_x & 0 \\\\\n\\lambda_y & 0 \\\\\n0 & \\lambda_x \\\\\n0 & \\lambda_y\n\\end{bmatrix}\n\\end{equation}\\]\n\n\nElement Stiffness Matrix: Global Coordinate System\n\\[\\begin{align}\n\\mathbf{k}_e &= \\mathbf{T}^T \\mathbf{k}'_e \\mathbf{T}\\\\\n    & =\\dfrac{EA}{L} \\begin{bmatrix}\n     \\lambda_x^2 & \\lambda_x \\lambda_y & -\\lambda_x^2 & -\\lambda_x \\lambda_y\\\\\n     \\lambda_x \\lambda_y & \\lambda_y^2 & -\\lambda_x \\lambda_y & -\\lambda_y^2\\\\\n     -\\lambda_x^2 & -\\lambda_x \\lambda_y & \\lambda_x^2 & \\lambda_x \\lambda_y\\\\\n     -\\lambda_x \\lambda_y & -\\lambda_y^2 & \\lambda_x \\lambda_y & \\lambda_y^2\n    \\end{bmatrix}\n\\end{align}\\]"
+  },
+  {
+    "objectID": "Truss_Stiffness.html#node-dof-arrows-global-x-right-y-up",
+    "href": "Truss_Stiffness.html#node-dof-arrows-global-x-right-y-up",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "Node DOF arrows (global x right, y up)",
+    "text": "Node DOF arrows (global x right, y up)\n\n\n\n\nAt each node: blue arrow = +x (right), green arrow = +y (up)."
+  },
+  {
+    "objectID": "Truss_Stiffness.html#selected-member",
+    "href": "Truss_Stiffness.html#selected-member",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "Selected member",
+    "text": "Selected member\n\n\n\nAligned member (x-direction view)\n\n\n\n\nClick a member to view it here, aligned with the x-axis.\n\n\n\n\nElement Stiffness Matrix: Local Coordinate System\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nOriented Member\n\n\n\n\nClick a member to view it here.\n\n\n\n\n\n\n\nDisplacement Transformation Matrix\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nForce Transformation Matrix\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nElement Stiffness Matrix: Global Coordinate System\n\n  \n  \n  \n  \n\n  \n  \n  \n    \n  \n\n\n\n\n\nActive Member Contribution to the Structure’s Stiffness Matrix"
+  },
+  {
+    "objectID": "Truss_Stiffness.html#assembled-global-stiffness-matrix-structure",
+    "href": "Truss_Stiffness.html#assembled-global-stiffness-matrix-structure",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "Assembled Global Stiffness Matrix (Structure)",
+    "text": "Assembled Global Stiffness Matrix (Structure)\n\nMember Contributions\nIndices with contributions from the selected member are highlighted.\n\n  \n  \n  \n  \n\n  \n  \n  \n\n\n\nAssembled Global Force Vector (Structure)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAssembled Global Displacement Vector (Structure)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nBlock Matrix Structure\n\n\n  \n    \n    Show block separator lines\n  \n\n\n\n\n  \n  \n  \n  \n\n  \n\n  \n    \n  \n\n  \n  \n\n\n\nGlobal system\n\n\n  K\n  ×\n  d\n  =\n  F\n\n\n\n\n  \n    \n  \n\n  ×\n\n  \n    \n  \n\n  =\n\n  \n    \n  \n\n\n  Solve d (free) & reactions R\n  \n\n\n\nFree-DOF solution\n\n\n  \n    \n  \n  =\n  \n    \n  \n  (\n  \n    \n  \n  −\n  \n    \n  \n  ×\n  \n    \n  \n  )\n\n\n\n\nNet Forces at Supports\n\n\n  \n    \n  \n  =\n\n  \n    \n  \n  ×\n  \n    \n  \n\n  +\n\n  \n    \n  \n  ×"
+  },
+  {
+    "objectID": "Truss_Stiffness.html#selected-member-axial-forces",
+    "href": "Truss_Stiffness.html#selected-member-axial-forces",
+    "title": "Interactive Example Truss Stiffness Solver",
+    "section": "Selected Member Axial Forces",
+    "text": "Selected Member Axial Forces"
+  }
+]
