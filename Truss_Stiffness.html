@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Interactive Example Truss Stiffness Solver</title>
+<title>Interactive Example Truss Stiffness Solver – Truss Stiffness Method</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -39,7 +39,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-ea385d0e468b0dd5ea5bf0780b1290d9.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-c1fac2584b48ed01fb6e278e36375074.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-a14e3238c51140e99ccc48519b6ed9ce.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -108,7 +108,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">Interactive Example Truss Stiffness Solver</span>
+    <span class="navbar-title">Truss Stiffness Method</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -118,8 +118,16 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./Truss_Stiffness.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./theory.html"> 
+<span class="menu-text">Theory</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./Truss_Stiffness.html" aria-current="page"> 
+<span class="menu-text">Interactive Solver</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -194,8 +202,8 @@ window.Quarto = {
 
 <section id="overview" class="level1">
 <h1>Overview</h1>
-<p>The stiffness method is regularly used in the analysis of both statically determinate and indeterminate structures. While the method follows a clear set of steps, the process can feel long, confusing, and difficult at first. It also requires the use of linear algebra, which may feel daunting upon seeing it for the first time. The purpose of this interactive documentation is to help you gain confidence with using the stiffness method by allowing you to explore each of the steps of the method both on a member-by-member basis and for the structure as a whole.</p>
-<p>Select a predefined truss for evaluation. Then, input material and section properties and prescribe loads on the nodes. Afterwards, click on a particular member to see how its length, orientation, and Young’s modulus affect its local stiffness matrices and ultimately its contribution to the global system of equations. You can also see how various loads and prescribed displacements influence resulting unknown reactions and displacements. Finally, after computing global unknowns, you can see their influence on your selected member’s forces at the bottom of the document.</p>
+<p>The stiffness method is regularly used in the analysis of both statically determinate and indeterminate structures. While the method follows a clear set of steps, the process can feel long, confusing, and difficult at first. It also requires the use of linear algebra, which may feel daunting upon seeing it for the first time. The purpose of this interactive documentation is to help you gain confidence using the stiffness method by allowing you to explore each of the steps of the method both on a member-by-member basis and for the structure as a whole.</p>
+<p>Select a predefined truss for evaluation in the dropdown box provided. Then, input material and section properties and prescribe loads on the nodes. Afterwards, click on a particular member to see how its length, orientation, and Young’s modulus affect its local stiffness matrices and ultimately its contribution to the global system of equations. You can also see how various loads and prescribed displacements influence resulting unknown reactions and displacements. Finally, after computing global unknowns, you can see their influence on your selected member’s forces at the bottom of the document.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -271,9 +279,9 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
     ["E","F","T1","#ef4444"],
     ["F","G","T2","#ef4444"],
 
-    ["E","B","V1","#10b981"],
-    ["F","C","V2","#10b981"],
-    ["G","D","V3","#10b981"],
+    ["E","B","V1","#a855f7"],
+    ["F","C","V2","#a855f7"],
+    ["G","D","V3","#a855f7"],
 
     ["A","E","D1","#a855f7"],
     ["B","F","D2","#a855f7"],
@@ -370,7 +378,7 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
 <section id="element-stiffness-matrix-global-coordinate-system" class="level3">
 <h3 class="anchored" data-anchor-id="element-stiffness-matrix-global-coordinate-system">Element Stiffness Matrix: Global Coordinate System</h3>
 <p><span class="math display">\[\begin{align}
-\mathbf{k}_e &amp;= \mathbf{T}^T \mathbf{k}'_e \mathbf{T}\\
+\mathbf{k}_e &amp;= \mathbf{T}^T_e \mathbf{k}'_e \mathbf{T}_e\\
     &amp; =\dfrac{EA}{L} \begin{bmatrix}
      \lambda_x^2 &amp; \lambda_x \lambda_y &amp; -\lambda_x^2 &amp; -\lambda_x \lambda_y\\
      \lambda_x \lambda_y &amp; \lambda_y^2 &amp; -\lambda_x \lambda_y &amp; -\lambda_y^2\\
@@ -5011,7 +5019,7 @@ if (showNodeLabelsChk && !showNodeLabelsChk._bound){
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/kendrickshepherd\.github\.io\/StiffnessMethodTrusses\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
