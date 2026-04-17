@@ -1,0 +1,15 @@
+---
+title: "Truss Stiffness Method"
+---
+
+# The Stiffness Method for Trusses
+
+This site provides resources for learning and applying the **stiffness method** (also known as the direct stiffness method) to truss structures.
+
+Use the navigation above to explore:
+
+- **Theory** — An overview ofthe stiffness method, beginning at member equations derived from Hooke's law, integrating them into a common system of equations, and then discussing how to solve for unknown displcements, reactions, and member forces.
+- **Interactive Solver** — A hands-on example where you can select a truss, assign properties and loads, and step through each stage of the solution.
+
+These materials are designed to complement Brigham Young University's CE 321 (Structural Analysis) course. 
+If you are new to the stiffness method, you may find it helpful to review the theory section and the interactive solver concurrently.

@@ -1,21 +1,14 @@
 ---
 title: "Interactive Example Truss Stiffness Solver"
-format:
-  html:
-    theme: cosmo
-    toc: true
-    toc-location: left   # or "right"
-    toc-depth: 3
-    mathjax: local
 ---
 # Overview
 
 The stiffness method is regularly used in the analysis of both statically determinate and indeterminate structures.
 While the method follows a clear set of steps, the process can feel long, confusing, and difficult at first.
 It also requires the use of linear algebra, which may feel daunting upon seeing it for the first time.
-The purpose of this interactive documentation is to help you gain confidence with using the stiffness method by allowing you to explore each of the steps of the method both on a member-by-member basis and for the structure as a whole.
+The purpose of this interactive documentation is to help you gain confidence using the stiffness method by allowing you to explore each of the steps of the method both on a member-by-member basis and for the structure as a whole.
 
-Select a predefined truss for evaluation.
+Select a predefined truss for evaluation in the dropdown box provided.
 Then, input material and section properties and prescribe loads on the nodes.
 Afterwards, click on a particular member to see how its length, orientation, and Young's modulus affect its local stiffness matrices and ultimately its contribution to the global system of equations.
 You can also see how various loads and prescribed displacements influence resulting unknown reactions and displacements.
@@ -91,9 +84,9 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
     ["E","F","T1","#ef4444"],
     ["F","G","T2","#ef4444"],
 
-    ["E","B","V1","#10b981"],
-    ["F","C","V2","#10b981"],
-    ["G","D","V3","#10b981"],
+    ["E","B","V1","#a855f7"],
+    ["F","C","V2","#a855f7"],
+    ["G","D","V3","#a855f7"],
 
     ["A","E","D1","#a855f7"],
     ["B","F","D2","#a855f7"],
@@ -195,7 +188,7 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
 
 ### Element Stiffness Matrix: Global Coordinate System
 \begin{align}
-\mathbf{k}_e &= \mathbf{T}^T \mathbf{k}'_e \mathbf{T}\\
+\mathbf{k}_e &= \mathbf{T}^T_e \mathbf{k}'_e \mathbf{T}_e\\
     & =\dfrac{EA}{L} \begin{bmatrix}
      \lambda_x^2 & \lambda_x \lambda_y & -\lambda_x^2 & -\lambda_x \lambda_y\\
      \lambda_x \lambda_y & \lambda_y^2 & -\lambda_x \lambda_y & -\lambda_y^2\\

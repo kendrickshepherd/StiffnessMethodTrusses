@@ -1,0 +1,186 @@
+---
+title: "Stiffness Method Theory"
+---
+
+The matrix stiffness method enables the analysis of both simple and complex structures using tools from matrix analysis.
+For trusses, the stiffness method is exactly equivalent to structural finite element analysis under the assumption that each truss member is comprised of a single element and that structural loads are only applied at nodes of the truss (Hughes, Chapter 5).
+Both of these assumptions typically hold true for idealized structural analysis.
+While the matrix stiffness method can be used to operate on space trusses, this page will only speak to and use planar truss analysis.
+
+## Indexing
+
+![Example indexing for the stiffness method is shown for a statically determinate Warren truss with one pin on the left and one roller on the right. Note that each node is assigned two directions, each of which has two indices. Directions for nodes in which movement is constrained are indexed last, while unconstrained directions at nodes are indexed first.](images/stiffness_method_example_indexing.svg){#fig-truss-indexing width=80%}
+
+After a structure has been idealized into a set of one-dimensional truss members connected and loaded at joints, and supported by pins and/or rollers, the stiffness method begins by assigning an index to each member and to each node of the truss.
+Forces acting on nodes and displacements present at nodes can be described as acting in the global $x$ or global $y$ direction, and as such two indices are prescribed for each node to describe information (forces and displacements) in each of these directions.
+These arbitrary indices will take labels of $1 \leq i,j \leq 2n_\text{nodes},$ where $n_\text{nodes}$ is the number of nodes in the truss, and the $i^\text{th}$ index, corresponding to a node-direction pair will be called the $i^\text{th}$ "degree of freedom."
+To more easily compute structural behavior in this process, indices corresponding to directions ($x$ or $y$) of nodes whose displacements are constrained are listed last, while directions at nodes that are not constrained are listed earlier, as exemplified in @fig-truss-indexing.
+
+## Member Stiffness in Local Coordinates
+
+![A characteristic member of a truss is displayed, with start and end node arbitrarily selected. While the global coordinate axes may not align with the proposed member, the origin of a member-specific coordinate system lies at the start node, with the local $x'$ direction in the direction of the end node and the $y'$ direction a 90° rotation from the $x'$ direction. Notice that loads at both the start ($q_s$) and end ($q_e$) are indicated as in the positive $x'$ direction.](images/arbitrary_bar.svg){#fig-arbitrary-bar}
+
+After establishing a labeling convention, each member is viewed in isolation and is assigned a local orientation, as depicted in @fig-arbitrary-bar.
+Using Hooke's Law, the relationship between the yet-unknown forces and displacements of the bar in the coordinate system aligned with the axis of the member are given by the matrix equation
+
+$$
+\mathbf{f}_e = \mathbf{k}'_e \mathbf{d}_e,
+$$ {#eq-local-coord-stiffness}
+
+where $\mathbf{f}_e$ describes axial loads on the member, $\mathbf{d}_e$ describes the displacements of each node of the truss member with respect to the localized coordinate system, and $\mathbf{k}'_e$ is called the element stiffness matrix in the local coordinate system, and provides a relationship between forces and displacements in a similar manner to the stiffness of a spring.
+The $e$ superscript clarifies that the relation is true for the specific member (or "element"), $e$, of the truss.
+In matrix form, these equations are described as
+
+$$
+\begin{bmatrix} f_s \\ f_e \end{bmatrix}
+=
+\frac{AE}{L}
+\begin{bmatrix} 1 & -1 \\ -1 & 1 \end{bmatrix}
+\begin{bmatrix} d_s \\ d_e \end{bmatrix},
+$$ {#eq-local-coord-stiffness-matrix}
+
+where $E$ is Young's modulus of the member; $A$ is cross-section area; $L$ is the length; $f_s$ and $f_e$ are the axial forces in the member at the start and end nodes, respectively; and $d_s$ and $d_e$ are the displacements in the $x'$ direction of the start node and end node, respectively.
+
+## Coordinate Transformation
+
+Though these localized equations for each truss member characterize deformation of each truss member individually, they must be combined to describe total behavior of the structure.
+Consequently, transformations must be made from each element coordinate system to and from the global $x$ and $y$ coordinate system to aggregate behavior.
+Transformation of displacements in the global $x$ and $y$ coordinate system occurs through the relationship
+
+$$
+\mathbf{d}_e = \mathbf{T}_e \mathbf{D}_e,
+$$ {#eq-displacement-transformation}
+
+or in matrix form as
+
+$$
+\begin{bmatrix} d_s \\ d_e \end{bmatrix}
+=
+\begin{bmatrix}
+  \cos(\theta) & \sin(\theta) & 0 & 0 \\
+  0 & 0 & \cos(\theta) & \sin(\theta)
+\end{bmatrix}
+\begin{bmatrix} D_{s_x} \\ D_{s_y} \\ D_{e_x} \\ D_{e_y} \end{bmatrix}.
+$$ {#eq-displacement-transformation-matrix}
+
+Conversely, transformation of local (axial) forces into the global coordinate system occurs through the relationship
+
+$$
+\mathbf{F}_e = (\mathbf{T}_e)^T \mathbf{f}_e,
+$$ {#eq-force-transformation}
+
+or
+
+$$
+\begin{bmatrix} F_{s_x} \\ F_{s_y} \\ F_{e_x} \\ F_{e_y} \end{bmatrix}
+=
+\begin{bmatrix}
+  \cos(\theta) & 0 \\
+  \sin(\theta) & 0 \\
+  0 & \cos(\theta) \\
+  0 & \sin(\theta)
+\end{bmatrix}
+\begin{bmatrix} f_s \\ f_e \end{bmatrix}.
+$$ {#eq-force-transformation-matrix}
+
+## Global Member Stiffness Matrix
+
+Substitution of @eq-displacement-transformation into @eq-local-coord-stiffness and multiplying both sides by the force transformation matrix, $(\mathbf{T}_e)^T$, yields
+
+$$
+\mathbf{F}_e = (\mathbf{T}_e)^T \mathbf{k}'_e \mathbf{T}_e \mathbf{D}_e.
+$$ {#eq-global-coord-stiffness}
+
+Here,
+
+$$
+\mathbf{k}_e = (\mathbf{T}_e)^T \mathbf{k}'_e \mathbf{T}_e
+$$ {#eq-global-member-stiffness-definition}
+
+is defined to be the element stiffness matrix in the global coordinate system, and describes the contribution of the truss member to the overall structural system.
+In matrix form, @eq-global-coord-stiffness can be written as
+
+$$
+\begin{bmatrix} F_{s_x} \\ F_{s_y} \\ F_{e_x} \\ F_{e_y} \end{bmatrix}
+=
+\frac{AE}{L}
+\begin{bmatrix}
+  \cos^2(\theta) & \cos(\theta)\sin(\theta) & -\cos^2(\theta) & -\cos(\theta)\sin(\theta) \\
+  \cos(\theta)\sin(\theta) & \sin^2(\theta) & -\cos(\theta)\sin(\theta) & -\sin^2(\theta) \\
+  -\cos^2(\theta) & -\cos(\theta)\sin(\theta) & \cos^2(\theta) & \cos(\theta)\sin(\theta) \\
+  -\cos(\theta)\sin(\theta) & -\sin^2(\theta) & \cos(\theta)\sin(\theta) & \sin^2(\theta)
+\end{bmatrix}
+\begin{bmatrix} D_{s_x} \\ D_{s_y} \\ D_{e_x} \\ D_{e_y} \end{bmatrix},
+$$ {#eq-global-coord-stiffness-matrix}
+
+where the element stiffness matrix in the global coordinate system is defined by the terms involving sines and cosines multiplied by $\frac{AE}{L}$.
+
+## Assembly of the Global Stiffness Matrix
+
+Using @eq-global-coord-stiffness-matrix, contributions of each truss member's element stiffness are aggregated into a system of equations written as
+
+$$
+\mathbf{F} = \mathbf{K} \mathbf{D},
+$$
+
+where $\mathbf{F}$ is a vector with $2 n_\text{nodes}$ values where $\mathbf{F}_i$ is the net force applied at degree of freedom $i$, $\mathbf{D}$ is a vector with $2 n_\text{nodes}$ values where $\mathbf{D}_i$ represents the displacement at degree of freedom $i$, and $\mathbf{K}$ is a $2 n_\text{nodes} \times 2 n_\text{nodes}$ matrix called the global stiffness matrix and represents the stiffness of the system.
+Here, $e$ superscripts are not present because these quantities describe aggregate information from all members of the truss.
+$\mathbf{K}$ is assembled by summing the individual contributions of each element stiffness matrix in the global coordinate system.
+Stiffness contributions from the first row and column correspond to information from the start node at $x$, and get aggregated into corresponding degrees of freedom in the global stiffness matrix.
+Similarly, contributions from the second row/column correspond to data at the start node in $y$, the third row/column correspond to data at the end node in $x$, and the final row/column correspond to data at the end node in $y$.
+For instance, using @fig-truss-indexing as an example, if truss member $BF$ were to be evaluated and the start node of this member was node $B$, the element stiffness matrix in the global coordinate system would sum into the global stiffness matrix entries as indicated in the following equation:
+
+$$
+\frac{AE}{L}
+\begin{bmatrix}
+  \cos^2(\theta) & \cos(\theta)\sin(\theta) & -\cos^2(\theta) & -\cos(\theta)\sin(\theta) \\
+  \cos(\theta)\sin(\theta) & \sin^2(\theta) & -\cos(\theta)\sin(\theta) & -\sin^2(\theta) \\
+  -\cos^2(\theta) & -\cos(\theta)\sin(\theta) & \cos^2(\theta) & \cos(\theta)\sin(\theta) \\
+  -\cos(\theta)\sin(\theta) & -\sin^2(\theta) & \cos(\theta)\sin(\theta) & \sin^2(\theta)
+\end{bmatrix}
+\leftrightarrow
+\begin{bmatrix}
+  K_{1,1} & K_{1,2} & K_{1,8} & K_{1,9} \\
+  K_{2,1} & K_{2,2} & K_{2,8} & K_{2,9} \\
+  K_{8,1} & K_{8,2} & K_{8,8} & K_{8,9} \\
+  K_{9,1} & K_{9,2} & K_{9,8} & K_{9,9}
+\end{bmatrix}.
+$$
+
+## Applying Boundary Conditions
+
+Based on the indexing convention established, values for $\mathbf{F}_i$ will be known for all but the last few indices, which last indices correspond to locations having unknown reactions.
+Similarly, values for $\mathbf{D}_i$ will be unknown for all but the last few indices, which last indices correspond to locations of supports (and thus known displacement, typically of zero unless settling occurs).
+Consequently, the large matrix system can be broken up into a block system as
+
+$$
+\begin{bmatrix} \mathbf{F}_k \\ \mathbf{F}_u \end{bmatrix}
+=
+\begin{bmatrix} \mathbf{K}_{11} & \mathbf{K}_{12} \\ \mathbf{K}_{21} & \mathbf{K}_{22} \end{bmatrix}
+\begin{bmatrix} \mathbf{D}_u \\ \mathbf{D}_k \end{bmatrix},
+$$ {#eq-block-matrix}
+
+where $\mathbf{F}_k$ is the vector of known forces, $\mathbf{F}_u$ is the vector representing degrees of freedom with yet-unknown reaction forces, $\mathbf{D}_u$ is the vector of nodal displacements that are not yet known, and $\mathbf{D}_k$ indicates known displacements of the structure at locations of supports.
+Block stiffness matrices $\mathbf{K}_{11}, \mathbf{K}_{12}, \mathbf{K}_{21},$ and $\mathbf{K}_{22}$ are defined in a manner that allows the block matrix system of equations to hold.
+Again using @fig-truss-indexing as an example, $\mathbf{F}_k$ and $\mathbf{D}_u$ would comprise the first 11 entries of the $\mathbf{F}$ and $\mathbf{D}$ vectors, respectively; $\mathbf{F}_u$ and $\mathbf{D}_k$ would contain the last three entries of $\mathbf{F}$ and $\mathbf{D}$, respectively; $\mathbf{K}_{11}$ would be an $11 \times 11$ matrix; $\mathbf{K}_{12}$ would be an $11 \times 3$ matrix; $\mathbf{K}_{21}$ would be a $3 \times 11$ matrix; and $\mathbf{K}_{22}$ would be a $3 \times 3$ matrix.
+
+## Solving for Unknown Displacements and Reactions
+
+Employing block matrix multiplication, unknown displacements for degrees of freedom can be expressed as
+
+$$
+\mathbf{D}_u = \mathbf{K}_{11}^{-1} (\mathbf{F}_k - \mathbf{K}_{12} \mathbf{D}_k),
+$$ {#eq-unknown-displacements}
+
+after which the unknown forces can be determined as
+
+$$
+\mathbf{F}_u = \mathbf{K}_{21} \mathbf{D}_u + \mathbf{K}_{22} \mathbf{D}_k.
+$$ {#eq-unknown-forces}
+
+Recalling that each $\mathbf{D}_i$ and $\mathbf{F}_i$ describe displacements and net forces of a node-direction pair, respectively, displacements of nodes and reaction forces of the structure can be readily interpreted.
+
+## Member Force Recovery
+
+Finally, axial forces of members are established by substituting @eq-displacement-transformation into @eq-local-coord-stiffness, inputting global displacements in the $x$ and $y$ direction for the start and end nodes, and solving for $\mathbf{f}^e$.
+As such, all typical quantities of interest for a stable truss can be computed, regardless of the structure's static determinacy.

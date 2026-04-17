@@ -1,0 +1,21 @@
+project:
+  type: website
+  output-dir: docs
+
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    mathjax: local
+
+website:
+  title: "Truss Stiffness Method"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: theory.qmd
+        text: Theory
+      - href: Truss_Stiffness.qmd
+        text: Interactive Solver
