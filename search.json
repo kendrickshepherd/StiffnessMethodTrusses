@@ -107,8 +107,8 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Truss Stiffness Method",
+    "title": "Interactive Visualization of the Matrix Stiffness Method for Trusses",
     "section": "",
-    "text": "The Stiffness Method for Trusses\nThis site provides resources for learning and applying the stiffness method (also known as the direct stiffness method) to truss structures.\nUse the navigation above to explore:\n\nTheory — An overview ofthe stiffness method, beginning at member equations derived from Hooke’s law, integrating them into a common system of equations, and then discussing how to solve for unknown displcements, reactions, and member forces.\nInteractive Solver — A hands-on example where you can select a truss, assign properties and loads, and step through each stage of the solution.\n\nThese materials are designed to complement Brigham Young University’s CE 321 (Structural Analysis) course. If you are new to the stiffness method, you may find it helpful to review the theory section and the interactive solver concurrently."
+    "text": "This site provides resources for learning and applying the stiffness method (also known as the direct stiffness method) to truss structures.\nUse the navigation above to explore:\n\nTheory — An overview ofthe stiffness method, beginning at member equations derived from Hooke’s law, integrating them into a common system of equations, and then discussing how to solve for unknown displcements, reactions, and member forces.\nInteractive Solver — A hands-on example where you can select a truss, assign properties and loads, and step through each stage of the solution.\n\nThese materials are designed to complement Brigham Young University’s CE 321 (Structural Analysis) course. If you are new to the stiffness method, you may find it helpful to review the theory section and the interactive solver concurrently."
   }
 ]
