@@ -1,8 +1,6 @@
 ---
-title: "Truss Stiffness Method"
+title: "Interactive Visualization of the Matrix Stiffness Method for Trusses"
 ---
-
-# The Stiffness Method for Trusses
 
 This site provides resources for learning and applying the **stiffness method** (also known as the direct stiffness method) to truss structures.
 

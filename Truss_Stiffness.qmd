@@ -16,7 +16,7 @@ Finally, after computing global unknowns, you can see their influence on your se
 
 
 ::: {.callout-tip}
-Adjust **Units per pixel** and **Units label** to convert your computer's pixel lengths into your preferred units (e.g., meters).
+Set **Length scale** to the number of physical length units corresponding to one diagram coordinate unit (e.g., 0.05 means each diagram unit = 0.05 m, so a 100-unit bay = 5 m). Set **Units label** to your preferred length unit. The defaults below correspond to a steel truss (E = 200 GPa) with 5 m bay spacing and A = 10 cm² cross-sectional area.
 :::
 
 # Truss for Evaluation
@@ -120,16 +120,16 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
 </script>
 
 
-- Units per pixel: <input type="number" id="unitsPerPixel" value="1" step="0.01" min="0" style="width:8ch;">
-- Units label: <input type="text" id="unitsLabel" value="px" style="width:8ch;">
-- E (Young’s modulus): <input type="number" id="Einput" value="1" step="any" style="width:12ch;">
+- Length scale: <input type="number" id="unitsPerPixel" value="0.05" step="0.01" min="0" style="width:8ch;">
+- Units label: <input type="text" id="unitsLabel" value="m" style="width:8ch;">
+- E (Young’s modulus): <input type="number" id="Einput" value="200000000" step="any" style="width:12ch;">
   <input type="text" id="Eunits" value="kN/m^2" style="width:7ch;">
-- A (Area): <input type="number" id="Ainput" value="1" step="any" style="width:12ch;">
+- A (Area): <input type="number" id="Ainput" value="0.001" step="any" style="width:12ch;">
   <input type="text" id="Aunits" value="m^2" style="width:7ch;">
 - Apply EA/L to matrix entries: <input type="checkbox" id="applyFactor">
 
 **Active member:** <span id="memberName">—</span>  
-**L:** <span id="lengthVal">—</span> <span id="unitsOut">px</span>\
+**L:** <span id="lengthVal">—</span> <span id="unitsOut">m</span>\
 **$\mathbf{\theta}$:** <span id="thetaVal">—</span>°\
 **$\lambda_x$:** <span id="lambdaXVal">—</span><br/>
 **$\lambda_y$:** <span id="lambdaYVal">—</span>
@@ -148,7 +148,7 @@ Edit node coordinates and member connectivity in the JSON and re-render.-->
   <div id="forcesPanel"></div>
 
   <div style="display:flex; gap:.5rem; align-items:center; margin-top:.5rem; flex-wrap:wrap;">
-    Arrow scale: <input type="number" id="forceScale" value="0.30" min="0" step="0.05" style="width:8ch;"> px per unit
+    Arrow scale: <input type="number" id="forceScale" value="1.00" min="0" step="0.05" style="width:8ch;"> diagram units per force unit
     Force units: <input type="text" id="forceUnits" value="kN" style="width:6ch;">
     Displacement units: <input type="text" id="dispUnits" value="m" style="width:6ch;">
     <button id="forceClearBtn" type="button">Clear all</button>
@@ -1518,6 +1518,148 @@ Indices with contributions from the selected member are highlighted.
     cfg._loads = cfg._loads || JSON.parse(JSON.stringify(cfg.loads || {}));
     const loads = cfg._loads;
 
+    // ========================================================================
+    // SCALE BAR — drawn in the lower-left corner of the main SVG.
+    // Redrawn whenever the length scale or units label changes (via refresh()).
+    // ========================================================================
+    const scaleBarLayer = document.createElementNS(svgNS, 'g');
+    scaleBarLayer.setAttribute('id', 'scale-bar');
+    svg.appendChild(scaleBarLayer);
+
+    function drawScaleBar() {
+      while (scaleBarLayer.firstChild) scaleBarLayer.removeChild(scaleBarLayer.firstChild);
+      const scale = parseFloat(document.getElementById('unitsPerPixel').value) || 1;
+      const ul    = document.getElementById('unitsLabel').value || 'units';
+      const vb    = cfg.viewBox; // [minX, minY, width, height]
+
+      // Choose a round physical length whose SVG equivalent is ~15% of diagram width
+      const targetSvg  = vb[2] * 0.15;
+      const targetPhys = targetSvg * scale;
+      const mag = Math.pow(10, Math.floor(Math.log10(Math.max(targetPhys, 1e-12))));
+      let barPhys = mag;
+      for (const v of [1, 2, 5, 10, 20, 50]) {
+        barPhys = v * mag;
+        if (barPhys / scale >= targetSvg * 0.5) break;
+      }
+      const barSvg = barPhys / scale;
+
+      // Bottom-left corner of the viewBox with a small margin
+      const bx = vb[0] + 10;
+      const by = vb[1] + vb[3] - 10;
+      const th = 4;
+
+      function sbLine(x1, y1, x2, y2) {
+        const l = document.createElementNS(svgNS, 'line');
+        l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+        l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+        l.setAttribute('stroke', '#555'); l.setAttribute('stroke-width', '1.5');
+        l.setAttribute('stroke-linecap', 'round');
+        return l;
+      }
+      scaleBarLayer.appendChild(sbLine(bx, by, bx + barSvg, by));
+      scaleBarLayer.appendChild(sbLine(bx, by - th, bx, by + th));
+      scaleBarLayer.appendChild(sbLine(bx + barSvg, by - th, bx + barSvg, by + th));
+
+      const lbl = (Number.isInteger(barPhys) ? barPhys : +barPhys.toPrecision(2)) + ' ' + ul;
+      const txt = document.createElementNS(svgNS, 'text');
+      txt.setAttribute('x', bx + barSvg / 2); txt.setAttribute('y', by - 5);
+      txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('font-size', '9');
+      txt.setAttribute('fill', '#555');
+      txt.textContent = lbl;
+      scaleBarLayer.appendChild(txt);
+    }
+    drawScaleBar();
+
+    // ========================================================================
+    // NODE TOOLTIP + HIT LAYER
+    // Hovering over a node shows a small tooltip with its coordinates.
+    // Clicking pins/unpins the tooltip. The tooltip uses x-right / y-up
+    // convention referenced to the bottom-left node (the natural structural origin).
+    // ========================================================================
+
+    // Structural origin: bottom-left node in SVG space → (0, 0) in display units
+    const _nodeXs = Object.values(cfg.nodes).map(([x])  => x);
+    const _nodeYs = Object.values(cfg.nodes).map(([, y]) => y);
+    const _originX = Math.min(..._nodeXs);
+    const _originY = Math.max(..._nodeYs); // SVG y increases downward; max = bottom chord
+
+    // Tooltip group — pointer-events: none so it never blocks clicks on members/nodes
+    const nodeTooltipG = document.createElementNS(svgNS, 'g');
+    nodeTooltipG.setAttribute('id', 'node-tooltip');
+    nodeTooltipG.style.display = 'none';
+    nodeTooltipG.style.pointerEvents = 'none';
+    const nttRect  = document.createElementNS(svgNS, 'rect');
+    nttRect.setAttribute('fill', '#111'); nttRect.setAttribute('fill-opacity', '0.83');
+    nttRect.setAttribute('rx', '3');  nttRect.setAttribute('ry', '3');
+    const nttLine1 = document.createElementNS(svgNS, 'text');
+    const nttLine2 = document.createElementNS(svgNS, 'text');
+    [nttLine1, nttLine2].forEach(t => {
+      t.setAttribute('font-size', '9.5');
+      t.setAttribute('fill', '#fff');
+      t.setAttribute('dominant-baseline', 'central');
+    });
+    nodeTooltipG.appendChild(nttRect);
+    nodeTooltipG.appendChild(nttLine1);
+    nodeTooltipG.appendChild(nttLine2);
+    svg.appendChild(nodeTooltipG);
+
+    let pinnedNode = null; // name of the currently pinned node, or null
+
+    function showNodeTooltip(svgX, svgY, nodeName) {
+      const scale = parseFloat(document.getElementById('unitsPerPixel').value) || 1;
+      const ul    = document.getElementById('unitsLabel').value || 'units';
+      const px    = ((svgX - _originX) * scale).toFixed(3);
+      const py    = ((_originY - svgY) * scale).toFixed(3);
+      nttLine1.textContent = `Node ${nodeName}${pinnedNode === nodeName ? '  ●' : ''}`;
+      nttLine2.textContent = `x = ${px} ${ul},  y = ${py} ${ul}`;
+
+      // Rough width estimate: ~5.5 px per char at font-size 9.5
+      const boxW = Math.max(nttLine1.textContent.length, nttLine2.textContent.length) * 5.5 + 10;
+      const lineH = 13, pad = 5;
+      const boxH  = 2 * lineH + 2 * pad;
+
+      const vb = cfg.viewBox;
+      const tx = (svgX + 8 + boxW < vb[0] + vb[2]) ? svgX + 8 : svgX - boxW - 8;
+      const ty = Math.max(vb[1] + 2, Math.min(vb[1] + vb[3] - boxH - 2, svgY - boxH / 2));
+
+      nttRect.setAttribute('x', tx);    nttRect.setAttribute('y', ty);
+      nttRect.setAttribute('width', boxW); nttRect.setAttribute('height', boxH);
+      nttLine1.setAttribute('x', tx + pad); nttLine1.setAttribute('y', ty + pad + lineH * 0.5);
+      nttLine2.setAttribute('x', tx + pad); nttLine2.setAttribute('y', ty + pad + lineH * 1.5);
+      nodeTooltipG.style.display = '';
+    }
+
+    function hideNodeTooltip() { nodeTooltipG.style.display = 'none'; }
+
+    // Hit circles — appended last so they sit on top and capture mouse events
+    const nodeHitLayer = document.createElementNS(svgNS, 'g');
+    nodeHitLayer.setAttribute('id', 'node-hit-layer');
+    svg.appendChild(nodeHitLayer);
+
+    Object.entries(cfg.nodes).forEach(([name, [nx, ny]]) => {
+      const hit = document.createElementNS(svgNS, 'circle');
+      hit.setAttribute('cx', nx); hit.setAttribute('cy', ny);
+      hit.setAttribute('r', '9');
+      hit.setAttribute('fill', 'transparent'); hit.setAttribute('stroke', 'none');
+      hit.style.cursor = 'crosshair';
+
+      hit.addEventListener('mouseenter', (e) => {
+        e.stopPropagation();
+        if (!pinnedNode) showNodeTooltip(nx, ny, name);
+      });
+      hit.addEventListener('mouseleave', (e) => {
+        e.stopPropagation();
+        if (!pinnedNode) hideNodeTooltip();
+      });
+      hit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (pinnedNode === name) { pinnedNode = null; hideNodeTooltip(); }
+        else                     { pinnedNode = name; showNodeTooltip(nx, ny, name); }
+      });
+
+      nodeHitLayer.appendChild(hit);
+    });
+
     // --- Per-node loads panel (Fx/Fy for every node) ---
     const forcesPanel = document.getElementById('forcesPanel');
 
@@ -1600,9 +1742,12 @@ Indices with contributions from the selected member are highlighted.
     // Wire Clear/Scale/Units to this specific truss instance
     if (forceClearBtn){
     forceClearBtn.onclick = () => {
-        cfg._loads = {};
+        cfg._loads  = {};
+        cfg._udisps = {};
         buildForcesPanel();
         drawLoads();
+        renderGlobalForceVector();
+        renderGlobalDisplacementVector();
     };
     }
     if (forceScaleInp) forceScaleInp.oninput = () => drawLoads();
@@ -4051,6 +4196,16 @@ function highlightFasmForMember(n1, n2){
 
     host.appendChild(noteLine('With current displacement values substituted:'));
     host.appendChild(buildRow({ mode: 'values' }));
+
+    // ---- Result summary with units ----
+    if (canEval) {
+      const unitsF = (document.getElementById('forceUnits')?.value || '').trim() || 'force units';
+      const sign   = qE > 0 ? 'tension' : qE < 0 ? 'compression' : 'zero force';
+      const summary = document.createElement('div');
+      summary.style.cssText = 'text-align:center; font-weight:600; margin:.5rem 0 .25rem; color:#111;';
+      summary.textContent   = `Axial force N = ${fmt(Math.abs(qE))} ${unitsF}  (${sign})`;
+      host.appendChild(summary);
+    }
   }
 
 
@@ -4607,10 +4762,12 @@ function highlightFasmForMember(n1, n2){
     line.setAttribute('tabindex','0');
   });
 
-  // Click empty background to clear selection
+  // Click empty background to clear selection and dismiss pinned node tooltip
   svg.addEventListener('click', (e) => {
-    if (!e.target.closest('.member')) {
+    if (!e.target.closest('.member') && !e.target.closest('#node-hit-layer')) {
       selected = null;
+      pinnedNode = null;
+      hideNodeTooltip();
       hideIso();
       hideAligned();
       if (hoveredLine) setActive(hoveredLine);
@@ -4634,6 +4791,7 @@ function highlightFasmForMember(n1, n2){
     if (selected) { setActive(selected); showAligned(selected); showIso(selected); }
     else if (hoveredLine) { setActive(hoveredLine); showAligned(selected); hideIso(); }
     else { clearActive(); hideAligned();  hideIso(); }
+    drawScaleBar();
     assembleAndRenderStructureK();       // <— global assembly
 }
   [Einput, Ainput, applyFactorEl].forEach(el =>
