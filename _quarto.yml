@@ -19,3 +19,5 @@ website:
         text: Theory
       - href: Truss_Stiffness.qmd
         text: Interactive Solver
+      - href: Beam_Stiffness.qmd
+        text: Interactive Beam Solver
