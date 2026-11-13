@@ -105,10 +105,101 @@
     "text": "Member Force Recovery\nFinally, axial forces of members are established by substituting Equation 3 into Equation 1, inputting global displacements in the \\(x\\) and \\(y\\) direction for the start and end nodes, and solving for \\(\\mathbf{f}^e\\). As such, all typical quantities of interest for a stable truss can be computed, regardless of the structure’s static determinacy."
   },
   {
+    "objectID": "Beam_Stiffness.html",
+    "href": "Beam_Stiffness.html",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "",
+    "text": "The stiffness method analyzes beams with the same steps used for trusses, with two changes. First, beam members resist bending, so the degrees of freedom at each node are a vertical displacement and a rotation. Second, beams often carry loads between their nodes, while the stiffness equations relate forces and displacements only at the nodes.\nThe principle of superposition handles the loads between nodes. The intended structure is written as the sum of two structures:\n\nThe loads off nodes structure treats every member as fixed at both ends and carries only the loads applied between nodes. The resulting fixed-end forces are tabulated and are taken as given here. They come from the force method, which we will discuss later.\nThe loads on nodes structure keeps the original supports and carries the reverse of every fixed-end force, plus any loads that were already applied at a node. This is the structure that the stiffness method solves.\n\nChoose supports, properties, and loads for the two-member beam below, then follow the three steps down the page. Click on a member to see how its properties affect its stiffness matrix and its contribution to the global system of equations. At the end, the two structures are added back together to give the displacements, member forces, reactions, and diagrams of the intended structure.\n\n\n\n\n\n\nTip\n\n\n\nEvery load, end force, and displacement on this page uses one sign convention: forces and displacements are positive upward, and moments and rotations are positive counterclockwise. A downward load is therefore entered as a negative number. Axial deformation is neglected, so pins and rollers behave identically. The defaults correspond to a steel beam (E = 200 GPa) with I = 4×10⁻⁴ m⁴."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#controls-readout",
+    "href": "Beam_Stiffness.html#controls-readout",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Controls & Readout",
+    "text": "Controls & Readout\nMembers\n\n\n\n\n\nMember\nLength L ()\nE ()\nI ()\n\n\n\n\nAB\n\n\n\n\n\nBC\n\n\n\n\n\n\n\n\n\n\n  Force units: \n  Length units: \n   Apply EI/L³ to matrix entries\n\n\n\n  Active member: —\n   L: — \n   EI: — \n\n\n\nSupports and loads on the nodes\n\n\nLoads between the nodes\n\nEnter upward forces as positive and downward forces as negative. Enter counterclockwise moments as positive. Positions a and b are measured from the start of the member (from A for member AB, and from B for member BC).\n\n  Add a load\n  Clear all"
+  },
+  {
+    "objectID": "Beam_Stiffness.html#loads-off-nodes-structure",
+    "href": "Beam_Stiffness.html#loads-off-nodes-structure",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Loads Off Nodes Structure",
+    "text": "Loads Off Nodes Structure\nEach member is fixed at both ends and carries only its own loads between nodes. Because every node is locked, no node moves in this structure. The forces that the fixed ends apply to a member are its fixed-end forces, listed below using the sign convention above.\n\n\n\n\n\n\n\nNoteFixed-end force formulas used on this page\n\n\n\n\n\nThese are the tabulated results, taken as given. The force method that produces them comes later in the course. Distributed and point forces in this table are written as downward magnitudes, which is how most tables list them. Here \\(a\\) is measured from the start node \\(S\\), and \\(b = L - a\\).\n\n\n\n\n\n\n\n\n\n\nLoad\n\\(V_S\\)\n\\(M_S\\)\n\\(V_E\\)\n\\(M_E\\)\n\n\n\n\nPoint force \\(P\\) at \\(a\\)\n\\(\\dfrac{Pb^2(3a+b)}{L^3}\\)\n\\(+\\dfrac{Pab^2}{L^2}\\)\n\\(\\dfrac{Pa^2(a+3b)}{L^3}\\)\n\\(-\\dfrac{Pa^2b}{L^2}\\)\n\n\nUniform \\(w\\), full span\n\\(\\dfrac{wL}{2}\\)\n\\(+\\dfrac{wL^2}{12}\\)\n\\(\\dfrac{wL}{2}\\)\n\\(-\\dfrac{wL^2}{12}\\)\n\n\nLinear \\(w_S\\) to \\(w_E\\), full span\n\\(\\dfrac{(7w_S+3w_E)L}{20}\\)\n\\(+\\dfrac{(3w_S+2w_E)L^2}{60}\\)\n\\(\\dfrac{(3w_S+7w_E)L}{20}\\)\n\\(-\\dfrac{(2w_S+3w_E)L^2}{60}\\)\n\n\nConcentrated moment \\(M_0\\) (counterclockwise) at \\(a\\)\n\\(+\\dfrac{6M_0ab}{L^3}\\)\n\\(\\dfrac{M_0\\,b(2a-b)}{L^2}\\)\n\\(-\\dfrac{6M_0ab}{L^3}\\)\n\\(\\dfrac{M_0\\,a(2b-a)}{L^2}\\)\n\n\n\nA partial-span load is the point-force row integrated over the loaded length, with \\(P\\) replaced by \\(w(x)\\,dx\\)."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#loads-on-nodes-structure",
+    "href": "Beam_Stiffness.html#loads-on-nodes-structure",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Loads On Nodes Structure",
+    "text": "Loads On Nodes Structure\nThe original supports are restored, and every load now acts at a node. Each node receives the reverse of the fixed-end forces from the members that meet there, plus any load that was applied at that node in the intended structure:\n\\[\nF_i = P_i - \\sum_{\\text{members}} \\text{FEF}_i .\n\\]\n\nGray rows act directly on a restrained degree of freedom. The support takes these loads without the beam deforming, so they do not enter the known forces \\(\\mathbf{F}_k\\) in Step 2."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#element-stiffness-matrix",
+    "href": "Beam_Stiffness.html#element-stiffness-matrix",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Element Stiffness Matrix",
+    "text": "Element Stiffness Matrix\nEach member has a vertical displacement and a rotation at each of its two ends. Both members are horizontal and axial deformation is neglected, so the local and global coordinate systems coincide and no transformation matrix is needed.\n\\[\\begin{equation}\n\\mathbf{k}_e = \\dfrac{EI}{L^3}\n\\begin{bmatrix}\n12 & 6L & -12 & 6L \\\\\n6L & 4L^2 & -6L & 2L^2 \\\\\n-12 & -6L & 12 & -6L \\\\\n6L & 2L^2 & -6L & 4L^2\n\\end{bmatrix}\n\\end{equation}\\]\nThe rows and columns are, in order, the vertical displacement at the start node, the rotation at the start node, the vertical displacement at the end node, and the rotation at the end node."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#node-dof-arrows-y-up-rotation-counterclockwise",
+    "href": "Beam_Stiffness.html#node-dof-arrows-y-up-rotation-counterclockwise",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Node DOF arrows (y up, rotation counterclockwise)",
+    "text": "Node DOF arrows (y up, rotation counterclockwise)\n\nAt each node: green arrow = +y (up), purple arrow = + rotation (counterclockwise), gray = restrained. Free degrees of freedom are numbered first."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#selected-member",
+    "href": "Beam_Stiffness.html#selected-member",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Selected member",
+    "text": "Selected member\nClick a member in the beam at the top of the page to select it, or hover over it to preview it.\n\nMember in Isolation\n\n\n\nElement Stiffness Matrix for the Active Member\n\n\n\nActive Member Contribution to the Structure’s Stiffness Matrix"
+  },
+  {
+    "objectID": "Beam_Stiffness.html#assembled-global-stiffness-matrix-structure",
+    "href": "Beam_Stiffness.html#assembled-global-stiffness-matrix-structure",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Assembled Global Stiffness Matrix (Structure)",
+    "text": "Assembled Global Stiffness Matrix (Structure)\n\nMember Contributions\nIndices with contributions from the selected member are highlighted.\n\n\n\nAssembled Global Force Vector (Structure)\nKnown entries are the loads on nodes from Step 1. Forces at restrained degrees of freedom are unknown until the system is solved.\n\n\n\nAssembled Global Displacement Vector (Structure)\n\n\n\nBlock Matrix Structure\n\n  \n    \n    Show block separator lines\n  \n\n\n\n  \\(\\mathbf{K}_{11}\\) free–free\n  \\(\\mathbf{K}_{12}\\) free–restrained\n  \\(\\mathbf{K}_{21}\\) restrained–free\n  \\(\\mathbf{K}_{22}\\) restrained–restrained\n\n\n\nGlobal system\n\n  \n    \n    ×\n    \n    =\n    \n  \n\n\n  Solve d (free) & net forces F (restrained)\n  \n\n\n\nFree-DOF solution\n\\[\\begin{equation}\n\\mathbf{d}_u = \\mathbf{K}_{11}^{-1}\\,(\\mathbf{F}_k - \\mathbf{K}_{12}\\,\\mathbf{d}_k)\n\\end{equation}\\]\n\n\n\nNet Forces at Supports\n\\[\\begin{equation}\n\\mathbf{F}_u = \\mathbf{K}_{21}\\,\\mathbf{d}_u + \\mathbf{K}_{22}\\,\\mathbf{d}_k\n\\end{equation}\\]"
+  },
+  {
+    "objectID": "Beam_Stiffness.html#selected-member-end-forces",
+    "href": "Beam_Stiffness.html#selected-member-end-forces",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Selected Member End Forces",
+    "text": "Selected Member End Forces\nThese end forces belong to the loads on nodes structure only. The fixed-end forces are added in Step 3."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#displacements-at-the-nodes",
+    "href": "Beam_Stiffness.html#displacements-at-the-nodes",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Displacements at the Nodes",
+    "text": "Displacements at the Nodes\nEvery node of the loads off nodes structure is locked, so that structure adds nothing to the nodal displacements."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#member-end-forces",
+    "href": "Beam_Stiffness.html#member-end-forces",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Member End Forces",
+    "text": "Member End Forces\nEnd forces add directly: the loads on nodes end forces \\(\\mathbf{k}_e\\mathbf{d}_e\\) plus the fixed-end forces. The selected member is shown first, followed by both members."
+  },
+  {
+    "objectID": "Beam_Stiffness.html#nodal-forces-and-support-reactions",
+    "href": "Beam_Stiffness.html#nodal-forces-and-support-reactions",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Nodal Forces and Support Reactions",
+    "text": "Nodal Forces and Support Reactions\nAdding the two structures at each degree of freedom returns the intended loads at free degrees of freedom. At restrained degrees of freedom, the sum is the net force at the support, and removing any load applied directly at that degree of freedom leaves the support reaction.\n\n\nIntended structure with its reactions"
+  },
+  {
+    "objectID": "Beam_Stiffness.html#shear-moment-and-deflection",
+    "href": "Beam_Stiffness.html#shear-moment-and-deflection",
+    "title": "Interactive Example Beam Stiffness Solver",
+    "section": "Shear, Moment, and Deflection",
+    "text": "Shear, Moment, and Deflection\nEach row below adds the loads off nodes structure to the loads on nodes structure. The free body diagrams show each member cut away from its nodes. Black arrows are loads between nodes, and orange arrows are the end forces acting on the member. Arrows point in the actual direction of each force, and labels give magnitudes. A load applied directly at a node acts on the node rather than on a member, so it appears in these diagrams only through the end forces. Move across any plot to read the sum at that location.\n\nPositive shear is a net upward force to the left of a cut. Positive moment bends the beam concave up (sagging). In terms of the end forces of a member: \\(V(0)=V_S\\), \\(M(0)=-M_S\\), \\(V(L)=-V_E\\), and \\(M(L)=M_E\\)."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Interactive Visualization of the Matrix Stiffness Method for Trusses",
     "section": "",
-    "text": "This site provides resources for learning and applying the stiffness method (also known as the direct stiffness method) to truss structures.\nUse the navigation above to explore:\n\nTheory — An overview ofthe stiffness method, beginning at member equations derived from Hooke’s law, integrating them into a common system of equations, and then discussing how to solve for unknown displcements, reactions, and member forces.\nInteractive Solver — A hands-on example where you can select a truss, assign properties and loads, and step through each stage of the solution.\n\nThese materials are designed to complement Brigham Young University’s CE 321 (Structural Analysis) course. If you are new to the stiffness method, you may find it helpful to review the theory section and the interactive solver concurrently."
+    "text": "This site provides resources for learning and applying the stiffness method (also known as the direct stiffness method) to truss structures.\nUse the navigation above to explore:\n\nTheory — An overview ofthe stiffness method, beginning at member equations derived from Hooke’s law, integrating them into a common system of equations, and then discussing how to solve for unknown displcements, reactions, and member forces.\nInteractive Solver — A hands-on example where you can select a truss, assign properties and loads, and step through each stage of the solution.\nInteractive Beam Solver — A hands-on example where you can apply loads on and between the nodes of a two-member indeterminate beam, and step through the stiffness method and the superposition that recovers the intended structure.\n\nThese materials are designed to complement Brigham Young University’s CE 321 (Structural Analysis) course. If you are new to the stiffness method, you may find it helpful to review the theory section and the interactive solver concurrently."
   }
 ]

@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Interactive Example Beam Stiffness Solver – Truss Stiffness Method</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-ba8f7c244c1f50cbf6c6a3aa3874339a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Truss Stiffness Method</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./theory.html"> 
+<span class="menu-text">Theory</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./Truss_Stiffness.html"> 
+<span class="menu-text">Interactive Solver</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./Beam_Stiffness.html" aria-current="page"> 
+<span class="menu-text">Interactive Beam Solver</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#beam-for-evaluation" id="toc-beam-for-evaluation" class="nav-link" data-scroll-target="#beam-for-evaluation">Beam for Evaluation</a>
+  <ul class="collapse">
+  <li><a href="#controls-readout" id="toc-controls-readout" class="nav-link" data-scroll-target="#controls-readout">Controls &amp; Readout</a></li>
+  </ul></li>
+  <li><a href="#step-1-separate-the-loads-by-superposition" id="toc-step-1-separate-the-loads-by-superposition" class="nav-link" data-scroll-target="#step-1-separate-the-loads-by-superposition">Step 1: Separate the Loads by Superposition</a>
+  <ul class="collapse">
+  <li><a href="#loads-off-nodes-structure" id="toc-loads-off-nodes-structure" class="nav-link" data-scroll-target="#loads-off-nodes-structure">Loads Off Nodes Structure</a></li>
+  <li><a href="#loads-on-nodes-structure" id="toc-loads-on-nodes-structure" class="nav-link" data-scroll-target="#loads-on-nodes-structure">Loads On Nodes Structure</a></li>
+  </ul></li>
+  <li><a href="#step-2-apply-the-stiffness-method-to-the-loads-on-nodes-structure" id="toc-step-2-apply-the-stiffness-method-to-the-loads-on-nodes-structure" class="nav-link" data-scroll-target="#step-2-apply-the-stiffness-method-to-the-loads-on-nodes-structure">Step 2: Apply the Stiffness Method to the Loads On Nodes Structure</a>
+  <ul class="collapse">
+  <li><a href="#element-stiffness-matrix" id="toc-element-stiffness-matrix" class="nav-link" data-scroll-target="#element-stiffness-matrix">Element Stiffness Matrix</a></li>
+  <li><a href="#node-dof-arrows-y-up-rotation-counterclockwise" id="toc-node-dof-arrows-y-up-rotation-counterclockwise" class="nav-link" data-scroll-target="#node-dof-arrows-y-up-rotation-counterclockwise">Node DOF arrows (y up, rotation counterclockwise)</a></li>
+  <li><a href="#selected-member" id="toc-selected-member" class="nav-link" data-scroll-target="#selected-member">Selected member</a>
+  <ul class="collapse">
+  <li><a href="#member-in-isolation" id="toc-member-in-isolation" class="nav-link" data-scroll-target="#member-in-isolation">Member in Isolation</a></li>
+  <li><a href="#element-stiffness-matrix-for-the-active-member" id="toc-element-stiffness-matrix-for-the-active-member" class="nav-link" data-scroll-target="#element-stiffness-matrix-for-the-active-member">Element Stiffness Matrix for the Active Member</a></li>
+  <li><a href="#active-member-contribution-to-the-structures-stiffness-matrix" id="toc-active-member-contribution-to-the-structures-stiffness-matrix" class="nav-link" data-scroll-target="#active-member-contribution-to-the-structures-stiffness-matrix">Active Member Contribution to the Structure’s Stiffness Matrix</a></li>
+  </ul></li>
+  <li><a href="#assembled-global-stiffness-matrix-structure" id="toc-assembled-global-stiffness-matrix-structure" class="nav-link" data-scroll-target="#assembled-global-stiffness-matrix-structure">Assembled Global Stiffness Matrix (Structure)</a>
+  <ul class="collapse">
+  <li><a href="#member-contributions" id="toc-member-contributions" class="nav-link" data-scroll-target="#member-contributions">Member Contributions</a></li>
+  <li><a href="#assembled-global-force-vector-structure" id="toc-assembled-global-force-vector-structure" class="nav-link" data-scroll-target="#assembled-global-force-vector-structure">Assembled Global Force Vector (Structure)</a></li>
+  <li><a href="#assembled-global-displacement-vector-structure" id="toc-assembled-global-displacement-vector-structure" class="nav-link" data-scroll-target="#assembled-global-displacement-vector-structure">Assembled Global Displacement Vector (Structure)</a></li>
+  <li><a href="#block-matrix-structure" id="toc-block-matrix-structure" class="nav-link" data-scroll-target="#block-matrix-structure">Block Matrix Structure</a></li>
+  <li><a href="#global-system" id="toc-global-system" class="nav-link" data-scroll-target="#global-system">Global system</a></li>
+  <li><a href="#free-dof-solution" id="toc-free-dof-solution" class="nav-link" data-scroll-target="#free-dof-solution">Free-DOF solution</a></li>
+  <li><a href="#net-forces-at-supports" id="toc-net-forces-at-supports" class="nav-link" data-scroll-target="#net-forces-at-supports">Net Forces at Supports</a></li>
+  </ul></li>
+  <li><a href="#selected-member-end-forces" id="toc-selected-member-end-forces" class="nav-link" data-scroll-target="#selected-member-end-forces">Selected Member End Forces</a></li>
+  </ul></li>
+  <li><a href="#step-3-superpose-to-recover-the-intended-structure" id="toc-step-3-superpose-to-recover-the-intended-structure" class="nav-link" data-scroll-target="#step-3-superpose-to-recover-the-intended-structure">Step 3: Superpose to Recover the Intended Structure</a>
+  <ul class="collapse">
+  <li><a href="#displacements-at-the-nodes" id="toc-displacements-at-the-nodes" class="nav-link" data-scroll-target="#displacements-at-the-nodes">Displacements at the Nodes</a></li>
+  <li><a href="#member-end-forces" id="toc-member-end-forces" class="nav-link" data-scroll-target="#member-end-forces">Member End Forces</a></li>
+  <li><a href="#nodal-forces-and-support-reactions" id="toc-nodal-forces-and-support-reactions" class="nav-link" data-scroll-target="#nodal-forces-and-support-reactions">Nodal Forces and Support Reactions</a></li>
+  <li><a href="#shear-moment-and-deflection" id="toc-shear-moment-and-deflection" class="nav-link" data-scroll-target="#shear-moment-and-deflection">Shear, Moment, and Deflection</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Interactive Example Beam Stiffness Solver</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level1">
+<h1>Overview</h1>
+<p>The stiffness method analyzes beams with the same steps used for trusses, with two changes. First, beam members resist bending, so the degrees of freedom at each node are a vertical displacement and a rotation. Second, beams often carry loads between their nodes, while the stiffness equations relate forces and displacements only at the nodes.</p>
+<p>The principle of superposition handles the loads between nodes. The intended structure is written as the sum of two structures:</p>
+<ul>
+<li>The <strong>loads off nodes structure</strong> treats every member as fixed at both ends and carries only the loads applied between nodes. The resulting fixed-end forces are tabulated and are taken as given here. They come from the force method, which we will discuss later.</li>
+<li>The <strong>loads on nodes structure</strong> keeps the original supports and carries the reverse of every fixed-end force, plus any loads that were already applied at a node. This is the structure that the stiffness method solves.</li>
+</ul>
+<p>Choose supports, properties, and loads for the two-member beam below, then follow the three steps down the page. Click on a member to see how its properties affect its stiffness matrix and its contribution to the global system of equations. At the end, the two structures are added back together to give the displacements, member forces, reactions, and diagrams of the intended structure.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Every load, end force, and displacement on this page uses one sign convention: forces and displacements are positive <strong>upward</strong>, and moments and rotations are positive <strong>counterclockwise</strong>. A downward load is therefore entered as a negative number. Axial deformation is neglected, so pins and rollers behave identically. The defaults correspond to a steel beam (E = 200 GPa) with I = 4×10⁻⁴ m⁴.</p>
+</div>
+</div>
+</section>
+<section id="beam-for-evaluation" class="level1">
+<h1>Beam for Evaluation</h1>
+<div id="beam-root" class="bm-scene"></div>
+<div id="bmStatus" class="bm-status" role="status"></div>
+<section id="controls-readout" class="level2">
+<h2 class="anchored" data-anchor-id="controls-readout">Controls &amp; Readout</h2>
+<div class="bm-subhead">Members</div>
+<div class="bm-scroll">
+
+<table class="bm-table bm-inputs caption-top table">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Member</th>
+<th data-quarto-table-cell-role="th">Length L (<span data-unit="L"></span>)</th>
+<th data-quarto-table-cell-role="th">E (<span data-unit="E"></span>)</th>
+<th data-quarto-table-cell-role="th">I (<span data-unit="I"></span>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AB</td>
+<td><input type="number" id="L0" value="6" step="any" min="0"></td>
+<td><input type="number" id="E0" value="200000000" step="any" min="0"></td>
+<td><input type="number" id="I0" value="0.0004" step="any" min="0"></td>
+</tr>
+<tr class="even">
+<td>BC</td>
+<td><input type="number" id="L1" value="4" step="any" min="0"></td>
+<td><input type="number" id="E1" value="200000000" step="any" min="0"></td>
+<td><input type="number" id="I1" value="0.0004" step="any" min="0"></td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+<div class="bm-inline-controls">
+  <label>Force units: <input type="text" id="forceUnits" value="kN" style="width:6ch;"></label>
+  <label>Length units: <input type="text" id="lengthUnits" value="m" style="width:6ch;"></label>
+  <label><input type="checkbox" id="applyFactor"> Apply EI/L³ to matrix entries</label>
+</div>
+
+<div class="bm-readout">
+  <strong>Active member:</strong> <span id="memberName">—</span>
+   <strong>L:</strong> <span id="lengthVal">—</span> <span data-unit="L"></span>
+   <strong>EI:</strong> <span id="EIVal">—</span> <span data-unit="EI"></span>
+</div>
+
+<hr style="margin:.5rem 0;">
+<div class="bm-subhead">Supports and loads on the nodes</div>
+<div class="bm-scroll"><div id="nodePanel"></div></div>
+
+<div class="bm-subhead">Loads between the nodes</div>
+<div id="memberLoadPanel"></div>
+<p class="bm-note">Enter upward forces as positive and downward forces as negative. Enter counterclockwise moments as positive. Positions a and b are measured from the start of the member (from A for member AB, and from B for member BC).</p>
+<div class="bm-inline-controls">
+  <button id="addLoadBtn" type="button">Add a load</button>
+  <button id="loadClearBtn" type="button">Clear all</button>
+</div>
+</section>
+</section>
+<section id="step-1-separate-the-loads-by-superposition" class="level1">
+<h1>Step 1: Separate the Loads by Superposition</h1>
+<p>The intended structure is replaced by two structures whose loads add back to the intended loads.</p>
+<div class="bm-scene-title">Intended structure</div>
+<div id="scene-intended" class="bm-scene"></div>
+<div class="bm-op" aria-hidden="true">=</div>
+<div class="bm-scene-title">Loads off nodes structure</div>
+<div id="scene-off" class="bm-scene"></div>
+<div class="bm-op" aria-hidden="true">+</div>
+<div class="bm-scene-title">Loads on nodes structure</div>
+<div id="scene-on" class="bm-scene"></div>
+<p class="bm-note">Orange = fixed-end forces. Blue = known loads at free degrees of freedom. Gray = loads acting directly on a restrained degree of freedom.</p>
+<section id="loads-off-nodes-structure" class="level2">
+<h2 class="anchored" data-anchor-id="loads-off-nodes-structure">Loads Off Nodes Structure</h2>
+<p>Each member is fixed at both ends and carries only its own loads between nodes. Because every node is locked, no node moves in this structure. The forces that the fixed ends apply to a member are its <strong>fixed-end forces</strong>, listed below using the sign convention above.</p>
+<div class="bm-scroll"><div id="fefTable"></div></div>
+<div class="callout callout-style-default callout-note callout-titled" title="Fixed-end force formulas used on this page">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Fixed-end force formulas used on this page
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>These are the tabulated results, taken as given. The force method that produces them comes later in the course. Distributed and point forces in this table are written as <strong>downward</strong> magnitudes, which is how most tables list them. Here <span class="math inline">\(a\)</span> is measured from the start node <span class="math inline">\(S\)</span>, and <span class="math inline">\(b = L - a\)</span>.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Load</th>
+<th style="text-align: center;"><span class="math inline">\(V_S\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(M_S\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(V_E\)</span></th>
+<th style="text-align: center;"><span class="math inline">\(M_E\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Point force <span class="math inline">\(P\)</span> at <span class="math inline">\(a\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{Pb^2(3a+b)}{L^3}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(+\dfrac{Pab^2}{L^2}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{Pa^2(a+3b)}{L^3}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{Pa^2b}{L^2}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Uniform <span class="math inline">\(w\)</span>, full span</td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{wL}{2}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(+\dfrac{wL^2}{12}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{wL}{2}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{wL^2}{12}\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Linear <span class="math inline">\(w_S\)</span> to <span class="math inline">\(w_E\)</span>, full span</td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{(7w_S+3w_E)L}{20}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(+\dfrac{(3w_S+2w_E)L^2}{60}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{(3w_S+7w_E)L}{20}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{(2w_S+3w_E)L^2}{60}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Concentrated moment <span class="math inline">\(M_0\)</span> (counterclockwise) at <span class="math inline">\(a\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(+\dfrac{6M_0ab}{L^3}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{M_0\,b(2a-b)}{L^2}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(-\dfrac{6M_0ab}{L^3}\)</span></td>
+<td style="text-align: center;"><span class="math inline">\(\dfrac{M_0\,a(2b-a)}{L^2}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>A partial-span load is the point-force row integrated over the loaded length, with <span class="math inline">\(P\)</span> replaced by <span class="math inline">\(w(x)\,dx\)</span>.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="loads-on-nodes-structure" class="level2">
+<h2 class="anchored" data-anchor-id="loads-on-nodes-structure">Loads On Nodes Structure</h2>
+<p>The original supports are restored, and every load now acts at a node. Each node receives the reverse of the fixed-end forces from the members that meet there, plus any load that was applied at that node in the intended structure:</p>
+<p><span class="math display">\[
+F_i = P_i - \sum_{\text{members}} \text{FEF}_i .
+\]</span></p>
+<div class="bm-scroll"><div id="onTable"></div></div>
+<p class="bm-note">Gray rows act directly on a restrained degree of freedom. The support takes these loads without the beam deforming, so they do not enter the known forces \(\mathbf{F}_k\) in Step 2.</p>
+</section>
+</section>
+<section id="step-2-apply-the-stiffness-method-to-the-loads-on-nodes-structure" class="level1 page-columns page-full">
+<h1>Step 2: Apply the Stiffness Method to the Loads On Nodes Structure</h1>
+<p>From here, the steps match the truss stiffness method. Everything in this step describes the loads on nodes structure.</p>
+<section id="element-stiffness-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="element-stiffness-matrix">Element Stiffness Matrix</h2>
+<p>Each member has a vertical displacement and a rotation at each of its two ends. Both members are horizontal and axial deformation is neglected, so the local and global coordinate systems coincide and no transformation matrix is needed.</p>
+<p><span class="math display">\[\begin{equation}
+\mathbf{k}_e = \dfrac{EI}{L^3}
+\begin{bmatrix}
+12 &amp; 6L &amp; -12 &amp; 6L \\
+6L &amp; 4L^2 &amp; -6L &amp; 2L^2 \\
+-12 &amp; -6L &amp; 12 &amp; -6L \\
+6L &amp; 2L^2 &amp; -6L &amp; 4L^2
+\end{bmatrix}
+\end{equation}\]</span></p>
+<p>The rows and columns are, in order, the vertical displacement at the start node, the rotation at the start node, the vertical displacement at the end node, and the rotation at the end node.</p>
+</section>
+<section id="node-dof-arrows-y-up-rotation-counterclockwise" class="level2">
+<h2 class="anchored" data-anchor-id="node-dof-arrows-y-up-rotation-counterclockwise">Node DOF arrows (y up, rotation counterclockwise)</h2>
+<div id="dof-root" class="bm-scene"></div>
+<p class="bm-note">At each node: green arrow = +y (up), purple arrow = + rotation (counterclockwise), gray = restrained. Free degrees of freedom are numbered first.</p>
+</section>
+<section id="selected-member" class="level2">
+<h2 class="anchored" data-anchor-id="selected-member">Selected member</h2>
+<p>Click a member in the beam at the top of the page to select it, or hover over it to preview it.</p>
+<section id="member-in-isolation" class="level3">
+<h3 class="anchored" data-anchor-id="member-in-isolation">Member in Isolation</h3>
+<div id="aligned-root" class="bm-scene"></div>
+</section>
+<section id="element-stiffness-matrix-for-the-active-member" class="level3">
+<h3 class="anchored" data-anchor-id="element-stiffness-matrix-for-the-active-member">Element Stiffness Matrix for the Active Member</h3>
+<div class="bm-scroll"><div id="KlocalHost"></div></div>
+</section>
+<section id="active-member-contribution-to-the-structures-stiffness-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="active-member-contribution-to-the-structures-stiffness-matrix">Active Member Contribution to the Structure’s Stiffness Matrix</h3>
+<div class="bm-scroll"><div id="KelemHost"></div></div>
+</section>
+</section>
+<section id="assembled-global-stiffness-matrix-structure" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="assembled-global-stiffness-matrix-structure">Assembled Global Stiffness Matrix (Structure)</h2>
+<section id="member-contributions" class="level3">
+<h3 class="anchored" data-anchor-id="member-contributions">Member Contributions</h3>
+<p>Indices with contributions from the selected member are highlighted.</p>
+<div class="bm-scroll"><div id="KasmHost"></div></div>
+</section>
+<section id="assembled-global-force-vector-structure" class="level3">
+<h3 class="anchored" data-anchor-id="assembled-global-force-vector-structure">Assembled Global Force Vector (Structure)</h3>
+<p>Known entries are the loads on nodes from Step 1. Forces at restrained degrees of freedom are unknown until the system is solved.</p>
+<div class="bm-scroll"><div id="FasmHost"></div></div>
+</section>
+<section id="assembled-global-displacement-vector-structure" class="level3">
+<h3 class="anchored" data-anchor-id="assembled-global-displacement-vector-structure">Assembled Global Displacement Vector (Structure)</h3>
+<div class="bm-scroll"><div id="DasmHost"></div></div>
+</section>
+<section id="block-matrix-structure" class="level3">
+<h3 class="anchored" data-anchor-id="block-matrix-structure">Block Matrix Structure</h3>
+<div style="margin:.25rem 0 .5rem;">
+  <label style="display:inline-flex; gap:.5rem; align-items:center;">
+    <input type="checkbox" id="KpartShowLines">
+    Show block separator lines
+  </label>
+</div>
+<div class="bm-scroll"><div id="KpartHost"></div></div>
+<div class="bm-legend">
+  <span><i class="blk-ff"></i>\(\mathbf{K}_{11}\) free–free</span>
+  <span><i class="blk-fr"></i>\(\mathbf{K}_{12}\) free–restrained</span>
+  <span><i class="blk-rf"></i>\(\mathbf{K}_{21}\) restrained–free</span>
+  <span><i class="blk-rr"></i>\(\mathbf{K}_{22}\) restrained–restrained</span>
+</div>
+</section>
+<section id="global-system" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="global-system">Global system</h3>
+<div class="bm-scroll column-page-right">
+  <div class="sys-row">
+    <div id="SysK"></div>
+    <div class="sys-op">×</div>
+    <div id="SysD"></div>
+    <div class="sys-op">=</div>
+    <div id="SysF"></div>
+  </div>
+</div>
+<div style="margin:.5rem 0 1rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+  <button id="solveBtn" type="button">Solve d (free) &amp; net forces F (restrained)</button>
+  <span id="solveMsg" style="color:#6b7280;"></span>
+</div>
+</section>
+<section id="free-dof-solution" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="free-dof-solution">Free-DOF solution</h3>
+<p><span class="math display">\[\begin{equation}
+\mathbf{d}_u = \mathbf{K}_{11}^{-1}\,(\mathbf{F}_k - \mathbf{K}_{12}\,\mathbf{d}_k)
+\end{equation}\]</span></p>
+<div class="bm-scroll column-page-right"><div id="solve-form"></div></div>
+</section>
+<section id="net-forces-at-supports" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="net-forces-at-supports">Net Forces at Supports</h3>
+<p><span class="math display">\[\begin{equation}
+\mathbf{F}_u = \mathbf{K}_{21}\,\mathbf{d}_u + \mathbf{K}_{22}\,\mathbf{d}_k
+\end{equation}\]</span></p>
+<div class="bm-scroll column-page-right"><div id="react-form"></div></div>
+</section>
+</section>
+<section id="selected-member-end-forces" class="level2">
+<h2 class="anchored" data-anchor-id="selected-member-end-forces">Selected Member End Forces</h2>
+<p>These end forces belong to the loads on nodes structure only. The fixed-end forces are added in Step 3.</p>
+<div class="bm-scroll"><div id="q-panels"></div></div>
+</section>
+</section>
+<section id="step-3-superpose-to-recover-the-intended-structure" class="level1">
+<h1>Step 3: Superpose to Recover the Intended Structure</h1>
+<p>The stiffness method has solved only the loads on nodes structure. Adding the loads off nodes structure back gives the response of the intended structure.</p>
+<div id="finalMsg" class="bm-status bm-bad" style="display:none;"></div>
+<div id="finalBody">
+<section id="displacements-at-the-nodes" class="level2">
+<h2 class="anchored" data-anchor-id="displacements-at-the-nodes">Displacements at the Nodes</h2>
+<p>Every node of the loads off nodes structure is locked, so that structure adds nothing to the nodal displacements.</p>
+<div class="bm-scroll"><div id="dispSuperTable"></div></div>
+</section>
+<section id="member-end-forces" class="level2">
+<h2 class="anchored" data-anchor-id="member-end-forces">Member End Forces</h2>
+<p>End forces add directly: the loads on nodes end forces <span class="math inline">\(\mathbf{k}_e\mathbf{d}_e\)</span> plus the fixed-end forces. The selected member is shown first, followed by both members.</p>
+<div class="bm-scroll"><div id="memberSuperHost"></div></div>
+<div class="bm-scroll"><div id="memberSuperTable"></div></div>
+</section>
+<section id="nodal-forces-and-support-reactions" class="level2">
+<h2 class="anchored" data-anchor-id="nodal-forces-and-support-reactions">Nodal Forces and Support Reactions</h2>
+<p>Adding the two structures at each degree of freedom returns the intended loads at free degrees of freedom. At restrained degrees of freedom, the sum is the net force at the support, and removing any load applied directly at that degree of freedom leaves the support reaction.</p>
+<div class="bm-scroll"><div id="nodeSuperTable"></div></div>
+<div id="equilCheck" class="bm-note"></div>
+<div class="bm-scene-title">Intended structure with its reactions</div>
+<div id="scene-reactions" class="bm-scene"></div>
+</section>
+<section id="shear-moment-and-deflection" class="level2">
+<h2 class="anchored" data-anchor-id="shear-moment-and-deflection">Shear, Moment, and Deflection</h2>
+<p>Each row below adds the loads off nodes structure to the loads on nodes structure. The free body diagrams show each member cut away from its nodes. Black arrows are loads between nodes, and orange arrows are the end forces acting on the member. Arrows point in the actual direction of each force, and labels give magnitudes. A load applied directly at a node acts on the node rather than on a member, so it appears in these diagrams only through the end forces. Move across any plot to read the sum at that location.</p>
+<div id="diagramGrid" class="dg-grid"></div>
+<p class="bm-note">Positive shear is a net upward force to the left of a cut. Positive moment bends the beam concave up (sagging). In terms of the end forces of a member: \(V(0)=V_S\), \(M(0)=-M_S\), \(V(L)=-V_E\), and \(M(L)=M_E\).</p>
+</section></div>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   1. DESIGN TOKENS — shared with the truss page where the meaning is the same
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  --dof-green:  #16a34a;  /* vertical displacement (same as truss +y)  */
+  --dof-rot:    #9333ea;  /* rotation                                  */
+  --dof-gray:   #6b7280;  /* restrained DOF                            */
+  --k-row-h:    36px;     /* matrix row height                         */
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2. BEAM SCENES — SVG canvases for the structure diagrams
+   ══════════════════════════════════════════════════════════════════════════ */
+.bm-scene svg{ display:block; width:100%; height:auto; border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+.bm-scene-title{ font-weight:600; margin:.6rem 0 .25rem; }
+.bm-op{ text-align:center; font-size:1.6rem; font-weight:700; line-height:1; margin:.35rem 0 0; color:#111; }
+.member{ stroke-linecap:round; transition:stroke-width 120ms ease; }
+.member-hit{ stroke:transparent; stroke-width:30; cursor:crosshair; }
+.member.active{ stroke-width:9; filter:drop-shadow(0 0 6px rgba(0,0,0,.28)); }
+.scn-lbl{ font-size:12px; fill:#111; paint-order:stroke; stroke:#fff; stroke-width:3px; stroke-linejoin:round; }
+.scn-dof{ font-size:12px; font-weight:700; paint-order:stroke; stroke:#fff; stroke-width:3px; }
+.node-lbl{ font-size:11px; font-weight:700; text-anchor:middle; dominant-baseline:central; fill:#111; pointer-events:none; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. PANELS, INPUTS, AND TABLES
+   ══════════════════════════════════════════════════════════════════════════ */
+.bm-status{ margin:.4rem 0 .2rem; color:#374151; }
+.bm-status.bm-bad{ color:#b91c1c; font-weight:600; }
+.bm-subhead{ font-weight:600; margin:.6rem 0 .25rem; }
+.bm-inline-controls{ display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin:.4rem 0; }
+.bm-readout{ margin:.4rem 0; }
+.bm-note{ color:#6b7280; font-style:italic; margin:.3rem 0 .6rem; }
+.bm-scroll{ overflow-x:auto; }
+.bm-table{ border-collapse:collapse; font-size:.92rem; font-variant-numeric:tabular-nums; margin:.3rem 0 .8rem; }
+.bm-table th, .bm-table td{ padding:.25rem .6rem; border-bottom:1px solid #e5e7eb; text-align:right; white-space:nowrap; }
+.bm-table th:first-child, .bm-table td:first-child{ text-align:left; }
+.bm-table th.left, .bm-table td.left{ text-align:left; }
+.bm-table thead th{ border-bottom:1.5px solid #111; font-weight:600; white-space:normal; vertical-align:bottom; }
+.bm-table tr.restrained td{ color:var(--dof-gray); }
+.bm-table tr.total td{ font-weight:600; border-bottom:1.5px solid #9ca3af; }
+.bm-table td.result{ font-weight:600; color:#111; }
+.bm-inputs input[type="number"]{ width:12ch; }
+.bm-inputs select{ max-width:12ch; }
+.bm-inputs input:disabled{ background:#f3f4f6; color:#9ca3af; }
+
+/* Member-load rows */
+#memberLoadPanel{ display:flex; flex-direction:column; gap:.4rem; }
+.ml-row{ display:flex; flex-wrap:wrap; gap:.35rem .7rem; align-items:center; padding:.35rem .5rem; border:1px solid #e5e7eb; border-radius:8px; }
+.ml-row label{ display:inline-flex; gap:.3rem; align-items:center; white-space:nowrap; }
+.ml-row input[type="number"]{ width:8ch; }
+.ml-row button{ margin-left:auto; line-height:1; padding:.15rem .5rem; }
+.ml-row .ml-msg{ flex-basis:100%; color:#b91c1c; font-size:.9rem; }
+.ml-row .ml-msg:empty{ display:none; }
+.ml-row.invalid{ border-color:#b91c1c; }
+.ml-empty{ color:#6b7280; font-style:italic; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4. MATRICES — one grid holds labels and cells, so they always stay aligned
+   ══════════════════════════════════════════════════════════════════════════ */
+.mwrap{ display:inline-flex; align-items:center; gap:.6rem; }
+.mlhs{ white-space:nowrap; }
+.mgrid{
+  display:inline-grid; position:relative; column-gap:14px; row-gap:8px; padding:0 12px; margin:8px 0;
+  align-items:center; justify-items:center;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-variant-numeric:tabular-nums; font-size:15px;
+}
+.kcell{ position:relative; min-width:48px; white-space:nowrap; text-align:center; padding:0 3px; }
+.mlabel{ font-weight:600; color:#111; white-space:nowrap; text-align:center; line-height:1.15; padding:0 4px; }
+.mcol{ margin-bottom:6px; }
+.mrow{ margin-left:10px; }
+.mlocal{ color:#6b7280; font-weight:500; font-size:.85em; }
+.mlabel.dof-y{ color:var(--dof-green); }
+.mlabel.dof-r{ color:var(--dof-rot); }
+.mlabel.restrained{ color:var(--dof-gray); }
+.mbracket{ position:relative; align-self:stretch; justify-self:stretch; margin:-4px -12px; pointer-events:none; }
+.mbracket::before, .mbracket::after{
+  content:""; position:absolute; top:0; bottom:0; width:10px;
+  border-top:2px solid #111; border-bottom:2px solid #111; border-radius:2px;
+}
+.mbracket::before{ left:0; border-left:2px solid #111; }
+.mbracket::after{ right:0; border-right:2px solid #111; }
+.msplit-h{ align-self:start; justify-self:stretch; height:3px; margin-top:-5.5px; background:#111; opacity:.6; pointer-events:none; }
+.msplit-v{ align-self:stretch; justify-self:start; width:3px; margin-left:-8.5px; background:#111; opacity:.6; pointer-events:none; }
+.kcell.hit, .mlabel.hit{ background:#e0f2fe; border-radius:6px; }
+
+/* Block tints: green = free, blue = free-restrained, amber = restrained-free, slate = restrained */
+.kcell.blk-ff{ background:#ecfdf5; border-radius:6px; }
+.kcell.blk-fr{ background:#e0f2fe; border-radius:6px; }
+.kcell.blk-rf{ background:#fef3c7; border-radius:6px; }
+.kcell.blk-rr{ background:#f1f5f9; border-radius:6px; }
+.bm-legend{ display:flex; flex-wrap:wrap; gap:.3rem 1.1rem; margin:.3rem 0 .8rem; font-size:.92rem; color:#374151; }
+.bm-legend span{ display:inline-flex; gap:.35rem; align-items:center; }
+.bm-legend i{ display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid #cbd5e1; }
+.bm-legend i.blk-ff{ background:#ecfdf5; } .bm-legend i.blk-fr{ background:#e0f2fe; }
+.bm-legend i.blk-rf{ background:#fef3c7; } .bm-legend i.blk-rr{ background:#f1f5f9; }
+
+/* Inline equations made of several matrices */
+.sys-row{ display:flex; align-items:center; flex-wrap:nowrap; white-space:nowrap; gap:2px; width:max-content; }
+.sys-op{ display:inline-flex; align-items:center; font-weight:700; font-size:18px; margin:0 6px; }
+.sys-text{ display:inline-flex; align-items:center; font-size:22px; margin:0 3px; }
+.sys-note{ color:#6b7280; margin:.5rem 0 .2rem; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5. SHEAR / MOMENT / DEFLECTION SMALL MULTIPLES
+   ══════════════════════════════════════════════════════════════════════════ */
+.dg-grid{ display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); gap:.25rem .4rem; align-items:center; margin:.4rem 0; }
+.dg-coltitle{ font-weight:600; text-align:center; font-size:.92rem; }
+.dg-rowhead{ grid-column:1 / -1; display:flex; flex-wrap:wrap; justify-content:space-between; gap:.1rem 1rem; margin-top:.6rem; }
+.dg-rowtitle{ font-weight:600; }
+.dg-readout{ color:#374151; font-variant-numeric:tabular-nums; }
+.dg-op{ font-weight:700; font-size:1.3rem; color:#111; }
+.dg-plot svg{ display:block; width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; background:#fff; touch-action:pan-y; cursor:crosshair; }
+.dg-plot svg:focus-visible{ outline:2px solid #2563eb; outline-offset:1px; }
+.dg-fbd svg{ display:block; width:100%; height:auto; border:1px solid #e5e7eb; border-radius:8px; background:#fff; }
+.dg-val{ font-size:11px; fill:#111; paint-order:stroke; stroke:#fff; stroke-width:3px; stroke-linejoin:round; font-variant-numeric:tabular-nums; }
+.dg-node{ font-size:10px; fill:#6b7280; text-anchor:middle; }
+@media (max-width:700px){
+  .dg-grid{ grid-template-columns:minmax(0,1fr); }
+  .dg-op{ text-align:center; }
+}
+</style>
+
+<script>
+(function () {
+  // ============================================================================
+  // ENGINE — pure structural calculations with no access to the page.
+  //
+  // Sign convention everywhere in the engine: forces and displacements are
+  // positive up, moments and rotations are positive counterclockwise.
+  // End-force vectors are ordered [V_S, M_S, V_E, M_E] and act ON the member.
+  // ============================================================================
+  // BEGIN ENGINE
+  const BeamEngine = (function () {
+    const GAUSS_3 = [[-Math.sqrt(0.6), 5 / 9], [0, 8 / 9], [Math.sqrt(0.6), 5 / 9]];
+
+    /** Cubic Hermite shape functions at xi = x / L. */
+    function hermite(xi, L) {
+      const x2 = xi * xi, x3 = x2 * xi;
+      return [1 - 3 * x2 + 2 * x3, L * (xi - 2 * x2 + x3), 3 * x2 - 2 * x3, L * (x3 - x2)];
+    }
+
+    /** Tabulated fixed-end forces for one load between nodes. */
+    function fixedEndForces(load, L) {
+      const L2 = L * L, L3 = L2 * L;
+      switch (load.type) {
+        case 'point': {
+          const P = -load.P, a = load.a, b = L - a;   // table lists downward forces
+          return [P * b * b * (3 * a + b) / L3, P * a * b * b / L2, P * a * a * (a + 3 * b) / L3, -P * a * a * b / L2];
+        }
+        case 'moment': {
+          const M = load.M, a = load.a, b = L - a;
+          return [6 * M * a * b / L3, M * b * (2 * a - b) / L2, -6 * M * a * b / L3, M * a * (2 * b - a) / L2];
+        }
+        case 'udl': {
+          const w = -load.w;
+          return [w * L / 2, w * L2 / 12, w * L / 2, -w * L2 / 12];
+        }
+        case 'linear': {
+          const wS = -load.wS, wE = -load.wE;
+          return [(7 * wS + 3 * wE) * L / 20, (3 * wS + 2 * wE) * L2 / 60, (3 * wS + 7 * wE) * L / 20, -(2 * wS + 3 * wE) * L2 / 60];
+        }
+        case 'partial': {
+          // The integrand is a degree-4 polynomial, so 3-point Gauss quadrature is exact.
+          const { a, b, w1, w2 } = load, half = (b - a) / 2, mid = (a + b) / 2, f = [0, 0, 0, 0];
+          for (const [t, weight] of GAUSS_3) {
+            const x = mid + half * t, w = -(w1 + (w2 - w1) * (x - a) / (b - a)), N = hermite(x / L, L);
+            for (let i = 0; i < 4; i++) f[i] += weight * half * w * N[i];
+          }
+          return f;
+        }
+      }
+      throw new Error('Unknown load type: ' + load.type);
+    }
+
+    /** Stiffness matrix entries with the factor EI/L^3 left out. */
+    function stiffnessPattern(L) {
+      const L2 = L * L;
+      return [[12, 6 * L, -12, 6 * L], [6 * L, 4 * L2, -6 * L, 2 * L2], [-12, -6 * L, 12, -6 * L], [6 * L, 2 * L2, -6 * L, 4 * L2]];
+    }
+
+    /** Free DOFs are numbered first, restrained DOFs last, in node order. */
+    function numberDOFs(supports) {
+      const free = [], rest = [];
+      supports.forEach((type, node) => {
+        const vHeld = type !== 'free', tHeld = type === 'fixed';
+        (vHeld ? rest : free).push({ node, dir: 'v', restrained: vHeld });
+        (tHeld ? rest : free).push({ node, dir: 't', restrained: tHeld });
+      });
+      const list = [...free, ...rest];
+      list.forEach((d, i) => { d.index = i; d.num = i + 1; });
+      const at = supports.map(() => ({}));
+      list.forEach(d => { at[d.node][d.dir] = d.index; });
+      return { list, at, N: list.length, Nf: free.length, Nr: rest.length };
+    }
+
+    function choleskyDecomp(A) {
+      const n = A.length, L = Array.from({ length: n }, () => Array(n).fill(0));
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j <= i; j++) {
+          let s = A[i][j];
+          for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+          if (i === j) {
+            if (s <= 1e-10 * Math.abs(A[i][i]) || !isFinite(s)) throw new Error('K11 is not positive definite.');
+            L[i][i] = Math.sqrt(s);
+          } else {
+            L[i][j] = s / L[j][j];
+          }
+        }
+      }
+      return L;
+    }
+
+    function solveWithCholesky(L, b) {
+      const n = L.length, y = Array(n).fill(0), x = Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        let s = b[i];
+        for (let k = 0; k < i; k++) s -= L[i][k] * y[k];
+        y[i] = s / L[i][i];
+      }
+      for (let i = n - 1; i >= 0; i--) {
+        let s = y[i];
+        for (let k = i + 1; k < n; k++) s -= L[k][i] * x[k];
+        x[i] = s / L[i][i];
+      }
+      return x;
+    }
+
+    function invertSPD(A) {
+      const n = A.length, L = choleskyDecomp(A), inv = Array.from({ length: n }, () => Array(n).fill(0));
+      for (let e = 0; e < n; e++) {
+        const b = Array(n).fill(0); b[e] = 1;
+        const col = solveWithCholesky(L, b);
+        for (let i = 0; i < n; i++) inv[i][e] = col[i];
+      }
+      return inv;
+    }
+
+    function matVec(A, x) { return A.map(row => row.reduce((s, v, j) => s + v * x[j], 0)); }
+
+    /** Replaces round-off residue with an exact zero. */
+    const chop = (x, ref) => (Math.abs(x) <= 1e-10 * ref ? 0 : x);
+    const maxAbs = arr => arr.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+
+    /** Rewrites a load as a point force, a point moment, or a linear distributed load. */
+    function normalize(load, L) {
+      switch (load.type) {
+        case 'point': return { kind: 'point', a: load.a, P: load.P };
+        case 'moment': return { kind: 'moment', a: load.a, M: load.M };
+        case 'udl': return { kind: 'dist', a: 0, b: L, q1: load.w, q2: load.w };
+        case 'linear': return { kind: 'dist', a: 0, b: L, q1: load.wS, q2: load.wE };
+        case 'partial': return { kind: 'dist', a: load.a, b: load.b, q1: load.w1, q2: load.w2 };
+      }
+      throw new Error('Unknown load type: ' + load.type);
+    }
+
+    /** Total force and moment about the start node for one normalized load. */
+    function loadResultant(p) {
+      if (p.kind === 'point') return { F: p.P, M: p.P * p.a };
+      if (p.kind === 'moment') return { F: 0, M: p.M };
+      const D = p.b - p.a, F = (p.q1 + p.q2) * D / 2;
+      return { F, M: p.a * F + p.q1 * D * D / 2 + (p.q2 - p.q1) * D * D / 3 };
+    }
+
+    /**
+     * Contribution of one load to V(x), M(x), and EI*v(x), measured from the
+     * start node. side = -1 or +1 selects the limit at a jump.
+     */
+    function loadEffect(p, x, side) {
+      if (p.kind === 'point' || p.kind === 'moment') {
+        if (!(x > p.a || (x === p.a && side > 0))) return [0, 0, 0];
+        const s = x - p.a;
+        return p.kind === 'point' ? [p.P, p.P * s, p.P * s * s * s / 6] : [0, -p.M, -p.M * s * s / 2];
+      }
+      if (x <= p.a) return [0, 0, 0];
+      const D = p.b - p.a, dq = p.q2 - p.q1, s = Math.min(x - p.a, D), r = x - p.a - s;
+      const V = p.q1 * s + dq * s * s / (2 * D);
+      const M = p.q1 * s * s / 2 + dq * s * s * s / (6 * D);
+      const T = p.q1 * s * s * s / 6 + dq * s * s * s * s / (24 * D);
+      const Y = p.q1 * s * s * s * s / 24 + dq * s * s * s * s * s / (120 * D);
+      return [V, M + V * r, Y + T * r + M * r * r / 2 + V * r * r * r / 6];
+    }
+
+    /** Sample locations along one member, doubled at every jump. */
+    function memberStations(L, pieces, n) {
+      const breaks = [];
+      pieces.forEach(p => { if (p.kind === 'dist') breaks.push(p.a, p.b); else breaks.push(p.a); });
+      const interior = [...new Set(breaks)].filter(x => x > 1e-12 * L && x < L * (1 - 1e-12));
+      const xs = [...new Set([...Array.from({ length: n + 1 }, (_, i) => L * i / n), ...interior])].sort((a, b) => a - b);
+      const out = [];
+      xs.forEach((x, i) => {
+        if (i === 0) out.push({ x: 0, side: 1 });
+        else if (i === xs.length - 1) out.push({ x: L, side: -1 });
+        else if (interior.includes(x)) out.push({ x, side: -1 }, { x, side: 1 });
+        else out.push({ x, side: 1 });
+      });
+      return out;
+    }
+
+    /**
+     * Solves the structure. model = {
+     *   members: [{name, s, e, L, E, I}], supports: ['fixed'|'pin'|'roller'|'free'],
+     *   nodes: [{Fy, M, v, th}], loads: [{member, type, ...}] }
+     */
+    function solve(model) {
+      const dof = numberDOFs(model.supports), { N, Nf, Nr } = dof;
+      const K = Array.from({ length: N }, () => Array(N).fill(0));
+      const FEF = Array(N).fill(0), P = Array(N).fill(0), D = Array(N).fill(0);
+
+      const members = model.members.map((m, index) => {
+        const ids = [dof.at[m.s].v, dof.at[m.s].t, dof.at[m.e].v, dof.at[m.e].t];
+        const factor = m.E * m.I / (m.L * m.L * m.L);
+        const k = stiffnessPattern(m.L).map(row => row.map(v => v * factor));
+        const loads = model.loads.filter(l => l.member === index).map(load => ({ load, fef: fixedEndForces(load, m.L) }));
+        const fef = [0, 1, 2, 3].map(i => loads.reduce((s, l) => s + l.fef[i], 0));
+        for (let i = 0; i < 4; i++) {
+          FEF[ids[i]] += fef[i];
+          for (let j = 0; j < 4; j++) K[ids[i]][ids[j]] += k[i][j];
+        }
+        return { ...m, index, ids, factor, k, loads, fef };
+      });
+
+      model.nodes.forEach((n, i) => {
+        P[dof.at[i].v] += n.Fy;
+        P[dof.at[i].t] += n.M;
+      });
+      dof.list.forEach(d => {
+        if (d.restrained) D[d.index] = d.dir === 'v' ? model.nodes[d.node].v : model.nodes[d.node].th;
+      });
+
+      const Fon = P.map((p, i) => p - FEF[i]);    // loads on nodes: reversed FEF + nodal loads
+      const out = { dof, K, FEF, P, Fon, D, members, N, Nf, Nr, stable: Nr >= 2, degree: Nr - 2, solved: false };
+      if (!out.stable) return out;
+
+      const range = (a, b) => Array.from({ length: b - a }, (_, i) => a + i);
+      const fIdx = range(0, Nf), rIdx = range(Nf, N);
+      const pick = (rows, cols) => rows.map(r => cols.map(c => K[r][c]));
+      const Kff = pick(fIdx, fIdx), Kfr = pick(fIdx, rIdx), Krf = pick(rIdx, fIdx), Krr = pick(rIdx, rIdx);
+      const Ff = fIdx.map(i => Fon[i]), dk = rIdx.map(i => D[i]);
+      const coupled = matVec(Kfr, dk);
+      const rhs = Ff.map((f, i) => f - coupled[i]);
+
+      let KffInv = [], du = [];
+      if (Nf > 0) {
+        KffInv = invertSPD(Kff);
+        du = matVec(KffInv, rhs);
+        du.forEach((v, i) => { D[i] = v; });
+      }
+
+      const Fnet = matVec(K, D);
+      const forceRef = dir => maxAbs(dof.list.filter(d => d.dir === dir).flatMap(d => [Fnet[d.index], FEF[d.index], P[d.index]]));
+      const refs = { v: forceRef('v'), t: forceRef('t') };
+      dof.list.forEach(d => {
+        Fnet[d.index] = d.restrained ? chop(Fnet[d.index], refs[d.dir]) : Fon[d.index];
+      });
+
+      const Fu = rIdx.map(i => Fnet[i]);
+      const netSum = Fnet.map((f, i) => chop(f + FEF[i], refs[dof.list[i].dir]));
+      const reactions = Fnet.map((f, i) => (dof.list[i].restrained ? chop(netSum[i] - P[i], refs[dof.list[i].dir]) : null));
+
+      members.forEach(m => {
+        const de = m.ids.map(i => D[i]);
+        const raw = matVec(m.k, de);
+        const ref = Math.max(maxAbs(raw), maxAbs(m.fef));
+        m.de = de;
+        m.qOn = raw.map(v => chop(v, ref));
+        m.q = raw.map((v, i) => chop(v + m.fef[i], ref));
+      });
+
+      // Global equilibrium of the intended structure, taken about node A.
+      let sumFy = 0, sumM = 0, ref = 0, xNode = 0;
+      const addF = (F, M) => { sumFy += F; sumM += M; ref = Math.max(ref, Math.abs(F), Math.abs(M)); };
+      model.nodes.forEach((n, i) => {
+        const at = dof.at[i];
+        const Rv = reactions[at.v] || 0, Rt = reactions[at.t] || 0;
+        addF(Rv + n.Fy, (Rv + n.Fy) * xNode);
+        addF(0, Rt + n.M);
+        if (i < members.length) xNode += members[i].L;
+      });
+      let xStart = 0;
+      members.forEach(m => {
+        m.loads.forEach(l => {
+          const r = loadResultant(normalize(l.load, m.L));
+          addF(r.F, r.M + r.F * xStart);
+        });
+        xStart += m.L;
+      });
+
+      return Object.assign(out, {
+        solved: true, Kff, Kfr, Krf, Krr, Ff, dk, KffInv, du, Fu, Fnet, netSum, reactions,
+        equilibrium: { Fy: chop(sumFy, ref), M: chop(sumM, ref) },
+      });
+    }
+
+    /** Shear, moment, and deflection along the beam for each of the three structures. */
+    function diagrams(sol, stationsPerMember) {
+      const n = stationsPerMember || 60, pts = [];
+      let X0 = 0;
+      sol.members.forEach(m => {
+        const pieces = m.loads.map(l => normalize(l.load, m.L));
+        const [Vs, Ms] = m.fef, [Vo, Mo] = m.qOn, EI = m.E * m.I;
+        memberStations(m.L, pieces, n).forEach(({ x, side }) => {
+          let dV = 0, dM = 0, dY = 0;
+          pieces.forEach(p => { const e = loadEffect(p, x, side); dV += e[0]; dM += e[1]; dY += e[2]; });
+          const off = { V: Vs + dV, M: -Ms + Vs * x + dM, v: (-Ms * x * x / 2 + Vs * x * x * x / 6 + dY) / EI };
+          const N = hermite(x / m.L, m.L);
+          const on = { V: Vo, M: -Mo + Vo * x, v: N.reduce((s, Ni, i) => s + Ni * m.de[i], 0) };
+          pts.push({ X: X0 + x, member: m.index, x, off, on, total: { V: off.V + on.V, M: off.M + on.M, v: off.v + on.v } });
+        });
+        X0 += m.L;
+      });
+      return pts;
+    }
+
+    return { fixedEndForces, stiffnessPattern, numberDOFs, solve, diagrams, normalize };
+  })();
+  // END ENGINE
+
+  // ============================================================================
+  // PAGE STATE AND SMALL HELPERS
+  // ============================================================================
+  const $ = id => document.getElementById(id);
+  const NODE_NAMES = ['A', 'B', 'C'];
+  const MEMBERS = [
+    { name: 'AB', s: 0, e: 1, color: '#3b82f6' },
+    { name: 'BC', s: 1, e: 2, color: '#ef4444' },
+  ];
+  const COLOR = { load: '#111', fef: '#c2410c', free: '#2563eb', held: '#94a3b8', green: '#16a34a', rot: '#9333ea', gray: '#64748b' };
+
+  let cur = null;             // { model, sol, pts } for the current inputs
+  let lockedMember = 0;       // clicked member
+  let hoverMember = null;     // previewed member
+  let showSolved = false;     // whether Solve has filled in the K d = F row
+
+  const num = x => (Number.isFinite(x) ? x : 0);
+  const tiny = x => (Math.abs(x) < 1e-12 ? 0 : x);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const activeIndex = () => (hoverMember == null ? lockedMember : hoverMember);
+
+  /** Same number format as the truss page. */
+  function fmt(x) {
+    if (!isFinite(x)) return '—';
+    x = tiny(x);
+    if (x === 0) return '0';
+    const a = Math.abs(x);
+    return (a < 1e-2 || a >= 1e4) ? x.toExponential(3) : x.toFixed(3);
+  }
+
+  /** Shorter format for labels inside diagrams. */
+  function fs(x) {
+    x = tiny(x);
+    if (x === 0) return '0';
+    const a = Math.abs(x);
+    return (a < 1e-2 || a >= 1e4) ? x.toExponential(2) : String(+x.toFixed(2));
+  }
+
+  function div(cls, html) {
+    const d = document.createElement('div');
+    if (cls) d.className = cls;
+    if (html != null) d.innerHTML = html;
+    return d;
+  }
+
+  function units() {
+    const F = ($('forceUnits').value || '').trim() || 'force';
+    const L = ($('lengthUnits').value || '').trim() || 'length';
+    return { F, L, FL: `${F}·${L}`, FpL: `${F}/${L}`, E: `${F}/${L}²`, I: `${L}⁴`, EI: `${F}·${L}²` };
+  }
+
+  function refreshUnitSpans() {
+    const u = units();
+    document.querySelectorAll('[data-unit]').forEach(el => { el.textContent = u[el.dataset.unit]; });
+  }
+
+  // MathJax typesetting runs one element at a time, after MathJax has started.
+  let mathQueue = Promise.resolve();
+  function typeset(el) {
+    mathQueue = mathQueue.then(() => {
+      const MJ = window.MathJax;
+      if (!MJ || !MJ.startup || !MJ.startup.promise) return undefined;   // page-level typeset will handle it
+      return MJ.startup.promise.then(() => {
+        if (!el.isConnected) return undefined;
+        if (MJ.typesetClear) MJ.typesetClear([el]);
+        return MJ.typesetPromise([el]);
+      });
+    }).catch(err => console.warn('MathJax:', err));
+  }
+  function mathInto(el, tex) {
+    if (!el || el._tex === tex) return;
+    el._tex = tex;
+    el.innerHTML = tex ? `\\(${esc(tex)}\\)` : '';
+    if (tex) typeset(el);
+  }
+
+  // ============================================================================
+  // INPUT PANELS
+  // ============================================================================
+  const NODE_DEFAULTS = [
+    { support: 'fixed', Fy: 0, M: 0 },
+    { support: 'roller', Fy: 0, M: 0 },
+    { support: 'roller', Fy: 0, M: 20 },
+  ];
+  const SUPPORT_OPTIONS = [['fixed', 'Fixed'], ['pin', 'Pin'], ['roller', 'Roller'], ['free', 'Free']];
+  const nodeInputs = [];
+
+  function buildNodePanel() {
+    const t = document.createElement('table');
+    t.className = 'bm-table bm-inputs';
+    t.innerHTML = `<thead><tr>
+      <th>Node</th><th class="left">Support</th>
+      <th>Force F<sub>y</sub> (<span data-unit="F"></span>)</th>
+      <th>Moment M (<span data-unit="FL"></span>)</th>
+      <th>Settlement v (<span data-unit="L"></span>)</th>
+      <th>Rotation θ (rad)</th></tr></thead>`;
+    const body = t.appendChild(document.createElement('tbody'));
+    NODE_NAMES.forEach((name, i) => {
+      const tr = body.appendChild(document.createElement('tr'));
+      tr.appendChild(document.createElement('td')).textContent = name;
+      const sel = document.createElement('select');
+      sel.id = 'support' + i;
+      SUPPORT_OPTIONS.forEach(([v, lab]) => sel.add(new Option(lab, v)));
+      sel.value = NODE_DEFAULTS[i].support;
+      const tdSel = tr.appendChild(document.createElement('td'));
+      tdSel.className = 'left';
+      tdSel.appendChild(sel);
+      const mk = (key, val) => {
+        const inp = document.createElement('input');
+        inp.type = 'number'; inp.step = 'any'; inp.value = val; inp.id = key + i;
+        inp.addEventListener('input', () => scheduleUpdate());
+        tr.appendChild(document.createElement('td')).appendChild(inp);
+        return inp;
+      };
+      const rec = { sel, Fy: mk('Fy', NODE_DEFAULTS[i].Fy), M: mk('Mz', NODE_DEFAULTS[i].M), v: mk('settle', 0), th: mk('rotate', 0) };
+      sel.addEventListener('change', () => { syncPrescribedInputs(); scheduleUpdate(); });
+      nodeInputs.push(rec);
+    });
+    $('nodePanel').replaceChildren(t);
+    syncPrescribedInputs();
+  }
+
+  /** A displacement can only be prescribed at a restrained degree of freedom. */
+  function syncPrescribedInputs() {
+    nodeInputs.forEach(n => {
+      n.v.disabled = n.sel.value === 'free';
+      n.th.disabled = n.sel.value !== 'fixed';
+    });
+  }
+
+  const LOAD_TYPES = {
+    point: { label: 'Point force', fields: [['P', 'P', 'F'], ['a', 'a', 'L']] },
+    moment: { label: 'Concentrated moment', fields: [['M', 'M₀', 'FL'], ['a', 'a', 'L']] },
+    udl: { label: 'Uniform (full span)', fields: [['w', 'w', 'FpL']] },
+    linear: { label: 'Triangular or linear (full span)', fields: [['wS', 'w at start', 'FpL'], ['wE', 'w at end', 'FpL']] },
+    partial: { label: 'Partial span', fields: [['w1', 'w at a', 'FpL'], ['w2', 'w at b', 'FpL'], ['a', 'a', 'L'], ['b', 'b', 'L']] },
+  };
+
+  let loadRows = [
+    { member: 0, type: 'udl', values: { w: -12 } },
+    { member: 1, type: 'point', values: { P: -30, a: 2 } },
+  ];
+
+  function memberLength(i) {
+    const L = parseFloat($('L' + i).value);
+    return L > 0 ? L : 1;
+  }
+
+  function defaultValues(type, member) {
+    const L = memberLength(member);
+    return {
+      point: { P: -10, a: L / 2 },
+      moment: { M: 10, a: L / 2 },
+      udl: { w: -10 },
+      linear: { wS: 0, wE: -10 },
+      partial: { w1: -10, w2: -10, a: 0, b: L / 2 },
+    }[type];
+  }
+
+  function renderLoadRows() {
+    const host = $('memberLoadPanel');
+    host.replaceChildren();
+    if (!loadRows.length) {
+      host.appendChild(div('ml-empty', 'No loads between nodes. Use "Add a load" to place one.'));
+      return;
+    }
+    loadRows.forEach(rec => host.appendChild(buildLoadRow(rec)));
+    refreshUnitSpans();
+  }
+
+  function buildLoadRow(rec) {
+    const row = div('ml-row');
+    const makeSelect = (labelText, options, value, onChange) => {
+      const lab = document.createElement('label');
+      lab.append(labelText + ' ');
+      const sel = document.createElement('select');
+      options.forEach(([v, t]) => sel.add(new Option(t, v)));
+      sel.value = value;
+      sel.addEventListener('change', () => onChange(sel.value));
+      lab.appendChild(sel);
+      row.appendChild(lab);
+    };
+    makeSelect('Member', MEMBERS.map((m, i) => [String(i), m.name]), String(rec.member), v => {
+      rec.member = +v;
+      scheduleUpdate();
+    });
+    makeSelect('Type', Object.entries(LOAD_TYPES).map(([k, t]) => [k, t.label]), rec.type, v => {
+      rec.type = v;
+      rec.values = defaultValues(v, rec.member);
+      renderLoadRows();
+      scheduleUpdate();
+    });
+    LOAD_TYPES[rec.type].fields.forEach(([key, labelText, unit]) => {
+      const lab = document.createElement('label');
+      lab.append(labelText + ' ');
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.step = 'any'; inp.value = rec.values[key];
+      inp.dataset.field = key;
+      inp.addEventListener('input', () => { rec.values[key] = num(parseFloat(inp.value)); scheduleUpdate(); });
+      lab.appendChild(inp);
+      const u = document.createElement('span');
+      u.dataset.unit = unit;
+      lab.appendChild(u);
+      row.appendChild(lab);
+    });
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.textContent = '×';
+    rm.title = 'Remove this load';
+    rm.setAttribute('aria-label', 'Remove this load');
+    rm.addEventListener('click', () => {
+      loadRows = loadRows.filter(r => r !== rec);
+      renderLoadRows();
+      scheduleUpdate();
+    });
+    row.appendChild(rm);
+    rec.msgEl = row.appendChild(div('ml-msg'));
+    rec.rowEl = row;
+    return row;
+  }
+
+  /** Reads every input into a plain model and reports anything unusable. */
+  function readModel() {
+    const members = MEMBERS.map((m, i) => ({
+      name: m.name, s: m.s, e: m.e,
+      L: parseFloat($('L' + i).value), E: parseFloat($('E' + i).value), I: parseFloat($('I' + i).value),
+    }));
+    const ok = members.every(m => m.L > 0 && m.E > 0 && m.I > 0);
+    const supports = nodeInputs.map(n => n.sel.value);
+    const nodes = nodeInputs.map(n => ({
+      Fy: num(parseFloat(n.Fy.value)), M: num(parseFloat(n.M.value)),
+      v: n.v.disabled ? 0 : num(parseFloat(n.v.value)), th: n.th.disabled ? 0 : num(parseFloat(n.th.value)),
+    }));
+    const loads = [];
+    loadRows.forEach(rec => {
+      const v = rec.values, L = members[rec.member].L;
+      let msg = '';
+      if (ok && (rec.type === 'point' || rec.type === 'moment') && !(v.a >= 0 && v.a <= L)) {
+        msg = `This load is ignored because a must be between 0 and ${L}.`;
+      }
+      if (ok && rec.type === 'partial' && !(v.a >= 0 && v.b <= L && v.b > v.a)) {
+        msg = `This load is ignored because the positions must satisfy 0 ≤ a < b ≤ ${L}.`;
+      }
+      if (rec.msgEl) rec.msgEl.textContent = msg;
+      if (rec.rowEl) rec.rowEl.classList.toggle('invalid', !!msg);
+      if (!msg) loads.push({ member: rec.member, type: rec.type, ...v });
+    });
+    return { ok, members, supports, nodes, loads };
+  }
+
+  // ============================================================================
+  // SVG DRAWING
+  // ============================================================================
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  function S(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function T(parent, x, y, txt, attrs) {
+    const t = S('text', { x, y, class: 'scn-lbl', ...attrs }, parent);
+    t.textContent = txt;
+    return t;
+  }
+
+  function newSvg(hostId, W, H, title) {
+    const host = $(hostId);
+    host.replaceChildren();
+    const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': title }, host);
+    return svg;
+  }
+
+  function arrow(g, x1, y1, x2, y2, color, width) {
+    S('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': width || 1.8 }, g);
+    const len = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+    const bx = x2 - 7 * ux, by = y2 - 7 * uy, hx = 3.5 * -uy, hy = 3.5 * ux;
+    S('polygon', { points: `${x2},${y2} ${bx + hx},${by + hy} ${bx - hx},${by - hy}`, fill: color }, g);
+  }
+
+  /** Curved arrow. Angles are in degrees measured counterclockwise from +x. */
+  function arcArrow(g, cx, cy, r, from, to, color) {
+    const rad = d => d * Math.PI / 180;
+    const pt = d => [cx + r * Math.cos(rad(d)), cy - r * Math.sin(rad(d))];
+    const ccw = to > from, [x0, y0] = pt(from), [x1, y1] = pt(to);
+    const large = Math.abs(to - from) > 180 ? 1 : 0;
+    S('path', { d: `M ${x0} ${y0} A ${r} ${r} 0 ${large} ${ccw ? 0 : 1} ${x1} ${y1}`, fill: 'none', stroke: color, 'stroke-width': 1.8 }, g);
+    const sign = ccw ? 1 : -1, t = rad(to);
+    const ux = -sign * Math.sin(t), uy = -sign * Math.cos(t);
+    const bx = x1 - 7 * ux, by = y1 - 7 * uy, hx = 3.5 * -uy, hy = 3.5 * ux;
+    S('polygon', { points: `${x1},${y1} ${bx + hx},${by + hy} ${bx - hx},${by - hy}`, fill: color }, g);
+  }
+
+  function drawGround(g, x, y) {
+    S('line', { x1: x - 16, y1: y, x2: x + 16, y2: y, stroke: '#9ca3af', 'stroke-width': 2 }, g);
+    for (let dx = -14; dx <= 10; dx += 6) {
+      S('line', { x1: x + dx + 5, y1: y, x2: x + dx, y2: y + 6, stroke: '#9ca3af', 'stroke-width': 1.3 }, g);
+    }
+  }
+
+  function drawSupport(g, type, x, y, side) {
+    if (type === 'pin' || type === 'roller') {
+      const top = y + 4, h = 16, w = 11;
+      S('polygon', { points: `${x},${top} ${x - w},${top + h} ${x + w},${top + h}`, fill: '#666', stroke: '#444' }, g);
+      let gy = top + h + 2;
+      if (type === 'roller') {
+        [-7, 0, 7].forEach(dx => S('circle', { cx: x + dx, cy: gy + 3, r: 3, fill: '#9ca3af', stroke: '#444' }, g));
+        gy += 7;
+      }
+      drawGround(g, x, gy);
+    } else if (type === 'fixed' && side) {
+      const d = side === 'left' ? -1 : 1;
+      S('line', { x1: x, y1: y - 26, x2: x, y2: y + 26, stroke: '#444', 'stroke-width': 3 }, g);
+      for (let t = -26; t < 26; t += 8) {
+        S('line', { x1: x, y1: y + t, x2: x + d * 9, y2: y + t + 9, stroke: '#9ca3af', 'stroke-width': 1.5 }, g);
+      }
+    } else if (type === 'fixed') {
+      S('rect', { x: x - 7, y: y + 3, width: 14, height: 22, fill: '#666', stroke: '#444' }, g);
+      drawGround(g, x, y + 25);
+    }
+  }
+
+  const supportSide = i => (i === 0 ? 'left' : i === NODE_NAMES.length - 1 ? 'right' : null);
+
+  function drawDim(g, x1, x2, y, txt) {
+    S('line', { x1, y1: y, x2, y2: y, stroke: '#9ca3af', 'stroke-width': 1 }, g);
+    [x1, x2].forEach(x => S('line', { x1: x, y1: y - 5, x2: x, y2: y + 5, stroke: '#9ca3af', 'stroke-width': 1 }, g));
+    T(g, (x1 + x2) / 2, y + 4, txt, { 'text-anchor': 'middle' });
+  }
+
+  function drawNodeName(g, x, y, name) {
+    S('circle', { cx: x, cy: y, r: 8, fill: '#fff', stroke: '#111', 'stroke-width': 1.5 }, g);
+    const t = S('text', { x, y, class: 'node-lbl' }, g);
+    t.textContent = name;
+  }
+
+  /** Draws the loads between nodes of one member, above the member. */
+  function drawMemberLoads(g, mb, x1, x2, y, u) {
+    const sx = x => x1 + (x2 - x1) * x / mb.L;
+    mb.loads.forEach(({ load }, idx) => {
+      const p = BeamEngine.normalize(load, mb.L), stagger = idx % 3;
+      if (p.kind === 'point' && p.P !== 0) {
+        const xp = sx(p.a), up = p.P > 0, nearEnd = p.a > 0.85 * mb.L;
+        if (up) arrow(g, xp, y - 5, xp, y - 56, COLOR.load); else arrow(g, xp, y - 56, xp, y - 5, COLOR.load);
+        T(g, xp + (nearEnd ? -5 : 5), y - 60 - stagger * 13, `${fs(Math.abs(p.P))} ${u.F}`, nearEnd ? { 'text-anchor': 'end' } : {});
+      } else if (p.kind === 'moment' && p.M !== 0) {
+        const xp = sx(p.a);
+        if (p.M > 0) arcArrow(g, xp, y, 17, -40, 220, COLOR.load); else arcArrow(g, xp, y, 17, 220, -40, COLOR.load);
+        T(g, xp, y - 24 - stagger * 13, `${fs(Math.abs(p.M))} ${u.FL}`, { 'text-anchor': 'middle' });
+      } else if (p.kind === 'dist' && (p.q1 !== 0 || p.q2 !== 0)) {
+        const xa = sx(p.a), xb = sx(p.b), qmax = Math.max(Math.abs(p.q1), Math.abs(p.q2)), H = 46;
+        const n = Math.max(2, Math.round((xb - xa) / 28));
+        const top = [];
+        for (let i = 0; i <= n; i++) {
+          const t = i / n, q = p.q1 + (p.q2 - p.q1) * t, X = xa + (xb - xa) * t, h = Math.abs(q) / qmax * H;
+          top.push(`${X},${y - 5 - h}`);
+          if (h < 6) continue;
+          if (q < 0) arrow(g, X, y - 5 - h, X, y - 5, COLOR.load, 1.3); else arrow(g, X, y - 5, X, y - 5 - h, COLOR.load, 1.3);
+        }
+        S('polyline', { points: top.join(' '), fill: 'none', stroke: COLOR.load, 'stroke-width': 1.5 }, g);
+        const ly = y - 56 - stagger * 13;
+        if (p.q1 === p.q2) {
+          T(g, (xa + xb) / 2, ly, `${fs(Math.abs(p.q1))} ${u.FpL}`, { 'text-anchor': 'middle' });
+        } else {
+          if (p.q1 !== 0) T(g, xa, ly, `${fs(Math.abs(p.q1))} ${u.FpL}`, { 'text-anchor': 'start' });
+          if (p.q2 !== 0) T(g, xb, ly, `${fs(Math.abs(p.q2))} ${u.FpL}`, { 'text-anchor': 'end' });
+        }
+      }
+    });
+  }
+
+  /** Draws a force and a moment acting at a node, above the beam. */
+  function drawNodeLoad(g, x, y, Fv, Mt, color, u) {
+    if (Math.abs(tiny(Fv)) > 0) {
+      if (Fv > 0) arrow(g, x, y - 6, x, y - 62, color, 2.2); else arrow(g, x, y - 62, x, y - 6, color, 2.2);
+      T(g, x + 6, y - 66, `${fs(Math.abs(Fv))} ${u.F}`);
+    }
+    if (Math.abs(tiny(Mt)) > 0) {
+      if (Mt > 0) arcArrow(g, x, y, 22, -40, 220, color); else arcArrow(g, x, y, 22, 220, -40, color);
+      const nearRightEdge = x > 600;
+      T(g, x + (nearRightEdge ? -27 : 27), y - 24, `${fs(Math.abs(Mt))} ${u.FL}`, { 'text-anchor': nearRightEdge ? 'end' : 'start' });
+    }
+  }
+
+  function nodeXs(m, W, pad) {
+    const a = pad, c = W - pad, T0 = m.members[0].L + m.members[1].L;
+    return [a, a + (c - a) * m.members[0].L / T0, c];
+  }
+
+  function drawDims(g, m, xs, y, u) {
+    m.members.forEach((mb, i) => drawDim(g, xs[i], xs[i + 1], y, `L = ${fs(mb.L)} ${u.L}`));
+  }
+
+  /** The intended structure. Optionally clickable, optionally with its reactions. */
+  function drawStructure(hostId, opts) {
+    const { model: m, sol } = cur, u = units();
+    const W = 760, y = 110, H = opts.reactions ? 262 : 196;
+    const svg = newSvg(hostId, W, H, opts.title), xs = nodeXs(m, W, 70);
+    sol.members.forEach((mb, i) => {
+      const line = S('line', { x1: xs[i], y1: y, x2: xs[i + 1], y2: y, stroke: MEMBERS[i].color, 'stroke-width': 6, class: 'member' + (opts.interactive && i === activeIndex() ? ' active' : '') }, svg);
+      if (opts.interactive) line.dataset.member = i;
+      drawMemberLoads(svg, mb, xs[i], xs[i + 1], y, u);
+    });
+    m.supports.forEach((t, i) => drawSupport(svg, t, xs[i], y, supportSide(i)));
+    m.nodes.forEach((n, i) => drawNodeLoad(svg, xs[i], y, n.Fy, n.M, COLOR.load, u));
+    if (opts.reactions && sol.solved) {
+      m.nodes.forEach((n, i) => {
+        const at = sol.dof.at[i], Rv = sol.dof.list[at.v].restrained ? sol.reactions[at.v] : 0, Rt = sol.dof.list[at.t].restrained ? sol.reactions[at.t] : 0;
+        const x = xs[i];
+        if (Rv > 0) arrow(svg, x, y + 88, x, y + 42, COLOR.fef, 2.2);
+        else if (Rv < 0) arrow(svg, x, y + 42, x, y + 88, COLOR.fef, 2.2);
+        if (Rv !== 0) T(svg, x + 6, y + 102, `${fs(Math.abs(Rv))} ${u.F}`);
+        if (Rt !== 0) {
+          if (Rt > 0) arcArrow(svg, x, y, 32, -75, 105, COLOR.fef); else arcArrow(svg, x, y, 32, 105, -75, COLOR.fef);
+          T(svg, x + 16, y + 38, `${fs(Math.abs(Rt))} ${u.FL}`);
+        }
+      });
+    }
+    NODE_NAMES.forEach((name, i) => drawNodeName(svg, xs[i], y, name));
+    drawDims(svg, m, xs, opts.reactions ? y + 132 : y + 66, u);
+    if (opts.interactive) {
+      sol.members.forEach((mb, i) => {
+        const hit = S('line', { x1: xs[i], y1: y, x2: xs[i + 1], y2: y, class: 'member-hit', tabindex: 0, role: 'button', 'aria-label': `Select member ${mb.name}` }, svg);
+        hit.addEventListener('pointerenter', () => setHover(i));
+        hit.addEventListener('pointerleave', () => setHover(null));
+        hit.addEventListener('click', () => setLocked(i));
+        hit.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLocked(i); }
+        });
+      });
+    }
+  }
+
+  /** The loads off nodes structure: each member separated and fixed at both ends. */
+  function drawOffScene() {
+    const { model: m, sol } = cur, u = units();
+    const W = 760, y = 110, H = 216, gap = 56;
+    const svg = newSvg('scene-off', W, H, 'Loads off nodes structure'), xs = nodeXs(m, W, 50);
+    const spans = [[xs[0], xs[1] - gap / 2], [xs[1] + gap / 2, xs[2]]];
+    sol.members.forEach((mb, i) => {
+      const [x1, x2] = spans[i];
+      S('line', { x1, y1: y, x2, y2: y, stroke: MEMBERS[i].color, 'stroke-width': 6, class: 'member' }, svg);
+      drawSupport(svg, 'fixed', x1, y, 'left');
+      drawSupport(svg, 'fixed', x2, y, 'right');
+      drawMemberLoads(svg, mb, x1, x2, y, u);
+      drawEndForces(svg, x1, y, mb.fef[0], mb.fef[1], 1, u, false);
+      drawEndForces(svg, x2, y, mb.fef[2], mb.fef[3], -1, u, false);
+      drawDim(svg, x1, x2, y + 88, `L = ${fs(mb.L)} ${u.L}`);
+    });
+  }
+
+  /**
+   * Draws the shear and moment acting on one end of a member, in their actual
+   * directions. dir is +1 at the start of a member and -1 at its end. Outward
+   * arcs suit a free body; inward arcs keep clear of a wall. momentLabelDrop
+   * lowers the moment label when it would otherwise meet the one at the other end.
+   */
+  function drawEndForces(g, x, y, V, M, dir, u, outward, momentLabelDrop = 0) {
+    const ax = x + dir * 4, anchor = dir > 0 ? 'start' : 'end', near = y + (outward ? 10 : 6), far = y + 52;
+    if (tiny(V) > 0) arrow(g, ax, far, ax, near, COLOR.fef, 2);
+    else if (tiny(V) < 0) arrow(g, ax, near, ax, far, COLOR.fef, 2);
+    if (tiny(V) !== 0) T(g, ax + dir * 6, y + 58, `${fs(Math.abs(V))} ${u.F}`, { 'text-anchor': anchor });
+    if (tiny(M) !== 0) {
+      const [low, high] = (dir > 0) !== outward ? [-75, 105] : [75, 285];
+      if (M > 0) arcArrow(g, x, y, 20, low, high, COLOR.fef);
+      else arcArrow(g, x, y, 20, high, low, COLOR.fef);
+      T(g, x + dir * (outward ? 12 : 26), y + 24 + momentLabelDrop, `${fs(Math.abs(M))} ${u.FL}`, { 'text-anchor': anchor });
+    }
+  }
+
+  /** One member cut free from its nodes, with its end forces and, optionally, its span loads. */
+  function drawMemberFBD(host, mb, endForces, withLoads, title) {
+    const u = units(), W = 260, H = 170, y = 100, x1 = 36, x2 = 224;
+    const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': title }, host);
+    S('line', { x1, y1: y, x2, y2: y, stroke: MEMBERS[mb.index].color, 'stroke-width': 6, class: 'member' }, svg);
+    if (withLoads) drawMemberLoads(svg, mb, x1, x2, y, u);
+    const labelWidth = M => `${fs(Math.abs(M))} ${u.FL}`.length * 7;
+    const crowded = labelWidth(endForces[1]) + labelWidth(endForces[3]) > x2 - x1 - 32;
+    drawEndForces(svg, x1, y, endForces[0], endForces[1], 1, u, true);
+    drawEndForces(svg, x2, y, endForces[2], endForces[3], -1, u, true, crowded ? 14 : 0);
+    drawNodeName(svg, x1, y, NODE_NAMES[mb.s]);
+    drawNodeName(svg, x2, y, NODE_NAMES[mb.e]);
+  }
+
+  /** The loads on nodes structure: original supports, every load at a node. */
+  function drawOnScene() {
+    const { model: m, sol } = cur, u = units();
+    const W = 760, y = 95, H = 180;
+    const svg = newSvg('scene-on', W, H, 'Loads on nodes structure'), xs = nodeXs(m, W, 70);
+    sol.members.forEach((mb, i) => S('line', { x1: xs[i], y1: y, x2: xs[i + 1], y2: y, stroke: MEMBERS[i].color, 'stroke-width': 6, class: 'member' }, svg));
+    m.supports.forEach((t, i) => drawSupport(svg, t, xs[i], y, supportSide(i)));
+    m.nodes.forEach((n, i) => {
+      const at = sol.dof.at[i];
+      const vHeld = sol.dof.list[at.v].restrained, tHeld = sol.dof.list[at.t].restrained;
+      drawNodeLoad(svg, xs[i], y, sol.Fon[at.v], 0, vHeld ? COLOR.held : COLOR.free, u);
+      drawNodeLoad(svg, xs[i], y, 0, sol.Fon[at.t], tHeld ? COLOR.held : COLOR.free, u);
+    });
+    NODE_NAMES.forEach((name, i) => drawNodeName(svg, xs[i], y, name));
+    drawDims(svg, m, xs, y + 66, u);
+  }
+
+  function drawDofPair(g, sol, node, x, y) {
+    const at = sol.dof.at[node], dv = sol.dof.list[at.v], dt = sol.dof.list[at.t];
+    const cv = dv.restrained ? COLOR.gray : COLOR.green, ct = dt.restrained ? COLOR.gray : COLOR.rot;
+    arrow(g, x, y - 4, x, y - 52, cv, 2);
+    T(g, x - 6, y - 50, String(dv.num), { class: 'scn-dof', fill: cv, 'text-anchor': 'end' });
+    arcArrow(g, x, y, 24, -60, 70, ct);
+    T(g, x + 31, y - 22, String(dt.num), { class: 'scn-dof', fill: ct });
+  }
+
+  function drawDofScene() {
+    const { model: m, sol } = cur, u = units();
+    const W = 760, y = 85, H = 168;
+    const svg = newSvg('dof-root', W, H, 'Degrees of freedom'), xs = nodeXs(m, W, 70);
+    sol.members.forEach((mb, i) => S('line', { x1: xs[i], y1: y, x2: xs[i + 1], y2: y, stroke: '#cbd5e1', 'stroke-width': 5 }, svg));
+    m.supports.forEach((t, i) => drawSupport(svg, t, xs[i], y, supportSide(i)));
+    NODE_NAMES.forEach((name, i) => drawDofPair(svg, sol, i, xs[i], y));
+    NODE_NAMES.forEach((name, i) => drawNodeName(svg, xs[i], y, name));
+    drawDims(svg, m, xs, y + 66, u);
+  }
+
+  function drawMemberScene() {
+    const { sol } = cur, u = units(), mb = sol.members[activeIndex()];
+    const W = 760, y = 110, H = 176, x1 = 110, x2 = 650;
+    const svg = newSvg('aligned-root', W, H, `Member ${mb.name}`);
+    S('line', { x1, y1: y, x2, y2: y, stroke: MEMBERS[mb.index].color, 'stroke-width': 6, class: 'member' }, svg);
+    drawDofPair(svg, sol, mb.s, x1, y);
+    drawDofPair(svg, sol, mb.e, x2, y);
+    drawNodeName(svg, x1, y, NODE_NAMES[mb.s]);
+    drawNodeName(svg, x2, y, NODE_NAMES[mb.e]);
+    T(svg, x1, y + 26, 'start (S)', { 'text-anchor': 'middle' });
+    T(svg, x2, y + 26, 'end (E)', { 'text-anchor': 'middle' });
+    drawDim(svg, x1, x2, y + 48, `L = ${fs(mb.L)} ${u.L},  EI = ${fs(mb.E * mb.I)} ${u.EI}`);
+  }
+
+  // ============================================================================
+  // MATRICES AND TABLES
+  // ============================================================================
+  /**
+   * Builds one bracketed matrix. Labels and cells share a single CSS grid, so
+   * they stay aligned. Cells are numbers or { html } objects.
+   * o = { rows, colLabels, rowLabels, tint(r,c), hit(r,c), splitRow, splitCol }
+   */
+  function buildMatrix(o) {
+    const R = o.rows.length, C = R ? o.rows[0].length : 0;
+    const g = div('mgrid');
+    const hasCol = !!o.colLabels, hasRow = !!o.rowLabels, r0 = hasCol ? 2 : 1;
+    g.style.gridTemplateColumns = `repeat(${C}, minmax(7ch, max-content))` + (hasRow ? ' max-content' : '');
+    g.style.gridTemplateRows = (hasCol ? 'auto ' : '') + `repeat(${R}, var(--k-row-h))`;
+    const place = (el, col, row) => { el.style.gridColumn = col; el.style.gridRow = row; g.appendChild(el); return el; };
+
+    if (hasCol) o.colLabels.forEach((lab, c) => place(div('mlabel mcol ' + (lab.cls || ''), lab.html), c + 1, 1));
+    if (hasRow) o.rowLabels.forEach((lab, r) => place(div('mlabel mrow ' + (lab.cls || ''), lab.html), C + 1, r0 + r));
+    o.rows.forEach((row, r) => row.forEach((v, c) => {
+      const cell = place(div('kcell'), c + 1, r0 + r);
+      if (v && typeof v === 'object') cell.innerHTML = v.html; else cell.textContent = fmt(v);
+      const tint = o.tint && o.tint(r, c);
+      if (tint) cell.classList.add(tint);
+      if (o.hit && o.hit(r, c)) cell.classList.add('hit');
+    }));
+    place(div('mbracket'), `1 / span ${C}`, `${r0} / span ${R}`);
+    if (o.splitRow > 0 && o.splitRow < R) place(div('msplit-h'), `1 / span ${C}`, r0 + o.splitRow);
+    if (o.splitCol > 0 && o.splitCol < C) place(div('msplit-v'), o.splitCol + 1, `${r0} / span ${R}`);
+    return g;
+  }
+
+  /** Puts a matrix and its TeX left-hand side into a host, keeping the label if unchanged. */
+  function matrixInto(host, o) {
+    if (!host._body) {
+      host.classList.add('mwrap');
+      host._lhs = host.appendChild(div('mlhs'));
+      host._body = host.appendChild(div());
+    }
+    mathInto(host._lhs, o.lhs || '');
+    host._body.replaceChildren(buildMatrix(o));
+  }
+
+  function dofLabel(sol, i) {
+    const d = sol.dof.list[i];
+    return { html: String(d.num), cls: (d.dir === 'v' ? 'dof-y' : 'dof-r') + (d.restrained ? ' restrained' : '') };
+  }
+
+  const blockTint = Nf => (r, c) => (r < Nf ? (c < Nf ? 'blk-ff' : 'blk-fr') : (c < Nf ? 'blk-rf' : 'blk-rr'));
+  const asCol = v => v.map(x => [x]);
+  const symbol = (ch, i) => ({ html: `${ch}<sub>(${i + 1})</sub>` });
+
+  function table(host, head, rows) {
+    const t = document.createElement('table');
+    t.className = 'bm-table';
+    const hr = t.appendChild(document.createElement('thead')).appendChild(document.createElement('tr'));
+    head.forEach(h => { const th = document.createElement('th'); th.innerHTML = h; hr.appendChild(th); });
+    const body = t.appendChild(document.createElement('tbody'));
+    rows.forEach(r => {
+      const tr = body.appendChild(document.createElement('tr'));
+      if (r.cls) tr.className = r.cls;
+      r.cells.forEach(c => {
+        const td = tr.appendChild(document.createElement('td'));
+        if (c && typeof c === 'object') { td.innerHTML = c.html; if (c.cls) td.className = c.cls; } else td.textContent = c;
+      });
+    });
+    host.replaceChildren(t);
+  }
+
+  function unitsHtml() {
+    const u = units(), out = {};
+    for (const k in u) out[k] = esc(u[k]);
+    return out;
+  }
+
+  function describeLoad(l, h) {
+    const v = x => fs(x);
+    switch (l.type) {
+      case 'point': return `Point force, P = ${v(l.P)} ${h.F} at a = ${v(l.a)} ${h.L}`;
+      case 'moment': return `Concentrated moment, M<sub>0</sub> = ${v(l.M)} ${h.FL} at a = ${v(l.a)} ${h.L}`;
+      case 'udl': return `Uniform, w = ${v(l.w)} ${h.FpL}`;
+      case 'linear': return `Linear, w = ${v(l.wS)} to ${v(l.wE)} ${h.FpL}`;
+      case 'partial': return `Partial span, w = ${v(l.w1)} to ${v(l.w2)} ${h.FpL} from ${v(l.a)} to ${v(l.b)} ${h.L}`;
+    }
+    return '';
+  }
+
+  function dofName(sol, i, h) {
+    const d = sol.dof.list[i];
+    return `${NODE_NAMES[d.node]}, ${d.dir === 'v' ? `vertical (${h.F})` : `moment (${h.FL})`}`;
+  }
+
+  function renderFefTable() {
+    const { sol } = cur, h = unitsHtml();
+    const head = ['Member', '<span>Load between nodes</span>', `V<sub>S</sub> (${h.F})`, `M<sub>S</sub> (${h.FL})`, `V<sub>E</sub> (${h.F})`, `M<sub>E</sub> (${h.FL})`];
+    const rows = [];
+    sol.members.forEach(mb => {
+      mb.loads.forEach(l => rows.push({ cells: [mb.name, { html: describeLoad(l.load, h), cls: 'left' }, ...l.fef.map(fmt)] }));
+      rows.push({ cls: 'total', cells: [mb.name, { html: 'Total fixed-end forces', cls: 'left' }, ...mb.fef.map(fmt)] });
+    });
+    table($('fefTable'), head, rows);
+  }
+
+  function renderOnTable() {
+    const { sol } = cur, h = unitsHtml();
+    const head = ['DOF', '<span>Node, direction</span>', 'Load applied at node', ...sol.members.map(m => `Reversed from ${m.name}`), 'Loads on nodes'];
+    const rows = sol.dof.list.map(d => {
+      const i = d.index, rev = sol.members.map(m => {
+        const pos = m.ids.indexOf(i);
+        return pos < 0 ? 0 : -m.fef[pos];
+      });
+      return { cls: d.restrained ? 'restrained' : '', cells: [d.num, { html: dofName(sol, i, h), cls: 'left' }, fmt(sol.P[i]), ...rev.map(fmt), { html: fmt(sol.Fon[i]), cls: 'result' }] };
+    });
+    table($('onTable'), head, rows);
+  }
+
+  /** Everything that depends on which member is active. */
+  function renderMemberPanels() {
+    const { sol } = cur, mb = sol.members[activeIndex()], apply = $('applyFactor').checked;
+    $('memberName').textContent = mb.name;
+    $('lengthVal').textContent = fmt(mb.L);
+    $('EIVal').textContent = fmt(mb.E * mb.I);
+    drawMemberScene();
+
+    document.querySelectorAll('#beam-root .member').forEach(l => l.classList.toggle('active', +l.dataset.member === mb.index));
+
+    const LOCAL = ['S<sub>y</sub>', 'S<sub>θ</sub>', 'E<sub>y</sub>', 'E<sub>θ</sub>'];
+    const col = mb.ids.map((id, i) => {
+      const l = dofLabel(sol, id);
+      return { html: `<span class="mlocal">${LOCAL[i]}</span><br>${l.html}`, cls: l.cls };
+    });
+    const row = mb.ids.map((id, i) => {
+      const l = dofLabel(sol, id);
+      return { html: `${l.html} <span class="mlocal">${LOCAL[i]}</span>`, cls: l.cls };
+    });
+    matrixInto($('KlocalHost'), {
+      lhs: apply ? String.raw`\mathbf{k}_e =` : String.raw`\mathbf{k}_e = ${fmt(mb.factor)} \times`,
+      rows: apply ? mb.k : BeamEngine.stiffnessPattern(mb.L),
+      colLabels: col, rowLabels: row,
+    });
+
+    const N = sol.N, inMember = i => mb.ids.includes(i);
+    const contribution = Array.from({ length: N }, () => Array(N).fill(0));
+    mb.ids.forEach((I, a) => mb.ids.forEach((J, b) => { contribution[I][J] = mb.k[a][b]; }));
+    const labels = sol.dof.list.map((d, i) => dofLabel(sol, i));
+    matrixInto($('KelemHost'), {
+      lhs: String.raw`\mathbf{K}_{${mb.name}} =`, rows: contribution, colLabels: labels, rowLabels: labels,
+      hit: (r, c) => inMember(r) && inMember(c),
+    });
+
+    const hitLabels = labels.map((l, i) => ({ html: l.html, cls: l.cls + (inMember(i) ? ' hit' : '') }));
+    matrixInto($('KasmHost'), {
+      lhs: String.raw`\mathbf{K}^{(g)} =`, rows: sol.K, colLabels: hitLabels, rowLabels: hitLabels,
+      hit: (r, c) => inMember(r) && inMember(c),
+    });
+    renderForceVector(hitLabels);
+    renderMemberForces(mb);
+  }
+
+  function dCell(sol, i, solved) {
+    return (i < sol.Nf && !solved) ? symbol('d', i) : sol.D[i];
+  }
+  function fCell(sol, i, solved) {
+    return (i < sol.Nf) ? sol.Fon[i] : (solved ? sol.Fnet[i] : symbol('F', i));
+  }
+  const rowTint = Nf => r => (r < Nf ? 'blk-ff' : 'blk-rr');
+
+  function renderForceVector(rowLabels) {
+    const { sol } = cur, u = units(), Nf = sol.Nf, showLines = $('KpartShowLines').checked;
+    const tint = rowTint(Nf);
+    const unitTxt = `${u.F}, ${u.FL}`;
+    matrixInto($('FasmHost'), {
+      lhs: String.raw`\mathbf{F}^{(g)}\text{ [${unitTxt}]} =`,
+      rows: sol.dof.list.map((d, i) => [fCell(sol, i, false)]),
+      rowLabels, tint: r => tint(r), splitRow: showLines ? Nf : 0,
+    });
+  }
+
+  function renderGlobalSystem() {
+    const { sol } = cur, u = units(), Nf = sol.Nf, showLines = $('KpartShowLines').checked;
+    const labels = sol.dof.list.map((d, i) => dofLabel(sol, i));
+    const tint = rowTint(Nf), split = showLines ? Nf : 0;
+    matrixInto($('DasmHost'), {
+      lhs: String.raw`\mathbf{d}^{(g)}\text{ [${u.L}, rad]} =`,
+      rows: sol.dof.list.map((d, i) => [dCell(sol, i, false)]),
+      rowLabels: labels, tint: r => tint(r), splitRow: split,
+    });
+    matrixInto($('KpartHost'), {
+      lhs: String.raw`\mathbf{K}^{(g)} =`, rows: sol.K, colLabels: labels, rowLabels: labels,
+      tint: blockTint(Nf), splitRow: split, splitCol: split,
+    });
+    const solved = showSolved && sol.solved;
+    matrixInto($('SysK'), { rows: sol.K, tint: blockTint(Nf), splitRow: split, splitCol: split });
+    matrixInto($('SysD'), { rows: sol.dof.list.map((d, i) => [dCell(sol, i, solved)]), tint: r => tint(r), splitRow: split });
+    matrixInto($('SysF'), { rows: sol.dof.list.map((d, i) => [fCell(sol, i, solved)]), tint: r => tint(r), splitRow: split });
+  }
+
+  function sysRow(parts) {
+    const row = div('sys-row');
+    parts.forEach(p => {
+      if (typeof p === 'string') {
+        const isOp = '=−+×'.includes(p);
+        const el = div(isOp ? 'sys-op' : 'sys-text');
+        el.textContent = p;
+        row.appendChild(el);
+      } else row.appendChild(buildMatrix(p));
+    });
+    return row;
+  }
+
+  function renderSolveForms() {
+    const { sol } = cur, form1 = $('solve-form'), form2 = $('react-form');
+    if (!sol.solved) {
+      const msg = 'The beam is unstable, so this system cannot be solved. Add a support.';
+      form1.replaceChildren(div('sys-note', msg));
+      form2.replaceChildren(div('sys-note', msg));
+      return;
+    }
+    const vec = (v, t) => ({ rows: asCol(v), tint: () => t });
+    const mat = (A, t) => ({ rows: A, tint: () => t });
+    if (sol.Nf > 0) {
+      form1.replaceChildren(sysRow([
+        vec(sol.du, 'blk-ff'), '=', mat(sol.KffInv, 'blk-ff'), '(', vec(sol.Ff, 'blk-ff'), '−',
+        mat(sol.Kfr, 'blk-fr'), '×', vec(sol.dk, 'blk-rr'), ')',
+      ]));
+      form2.replaceChildren(sysRow([
+        vec(sol.Fu, 'blk-rr'), '=', mat(sol.Krf, 'blk-rf'), '×', vec(sol.du, 'blk-ff'), '+',
+        mat(sol.Krr, 'blk-rr'), '×', vec(sol.dk, 'blk-rr'),
+      ]));
+    } else {
+      form1.replaceChildren(div('sys-note', 'Every degree of freedom is restrained, so there are no unknown displacements.'));
+      form2.replaceChildren(sysRow([vec(sol.Fu, 'blk-rr'), '=', mat(sol.Krr, 'blk-rr'), '×', vec(sol.dk, 'blk-rr')]));
+    }
+  }
+
+  function renderMemberForces(mb) {
+    const { sol } = cur, host = $('q-panels');
+    if (!sol.solved) { host.replaceChildren(div('sys-note', 'The beam is unstable, so member forces are not available.')); return; }
+    const u = units();
+    const names = ['V<sub>S</sub>', 'M<sub>S</sub>', 'V<sub>E</sub>', 'M<sub>E</sub>'];
+    const rowLabels = names.map((html, i) => ({ html, cls: i % 2 ? 'dof-r' : 'dof-y' }));
+    const row = values => sysRow([
+      { rows: mb.k.map(r => r.map(v => v)) }, '×', { rows: asCol(values) }, '=', { rows: asCol(mb.qOn), rowLabels },
+    ]);
+    host.replaceChildren(
+      div('sys-note', `Member ${esc(mb.name)}, by global DOF indices (no evaluation):`),
+      row(mb.ids.map(id => symbol('d', id))),
+      div('sys-note', 'With the solved displacement values substituted:'),
+      row(mb.de),
+      div('sys-note', `Units: V in ${esc(u.F)}, M in ${esc(u.FL)}.`),
+    );
+  }
+
+  // ============================================================================
+  // STEP 3 — SUPERPOSITION
+  // ============================================================================
+  function renderFinal() {
+    const { sol } = cur, h = unitsHtml();
+    const msg = $('finalMsg'), body = $('finalBody');
+    if (!sol.solved) {
+      msg.textContent = 'The beam is unstable, so there is no response to superpose. Add a support.';
+      msg.style.display = '';
+      body.style.display = 'none';
+      return;
+    }
+    msg.style.display = 'none';
+    body.style.display = '';
+
+    table($('dispSuperTable'), ['DOF', '<span>Node, direction</span>', 'Loads on nodes', 'Loads off nodes', 'Intended structure'],
+      sol.dof.list.map(d => ({
+        cls: d.restrained ? 'restrained' : '',
+        cells: [d.num, { html: `${NODE_NAMES[d.node]}, ${d.dir === 'v' ? `vertical (${h.L})` : 'rotation (rad)'}`, cls: 'left' }, fmt(sol.D[d.index]), '0', { html: fmt(sol.D[d.index]), cls: 'result' }],
+      })));
+
+    renderMemberSuperposition();
+
+    const NAMES = [`V<sub>S</sub> (${h.F})`, `M<sub>S</sub> (${h.FL})`, `V<sub>E</sub> (${h.F})`, `M<sub>E</sub> (${h.FL})`];
+    table($('memberSuperTable'), ['Member', '<span>End force</span>', 'Loads on nodes', 'Loads off nodes', 'Intended structure'],
+      sol.members.flatMap(m => NAMES.map((n, i) => ({
+        cells: [m.name, { html: n, cls: 'left' }, fmt(m.qOn[i]), fmt(m.fef[i]), { html: fmt(m.q[i]), cls: 'result' }],
+      }))));
+
+    table($('nodeSuperTable'), ['DOF', '<span>Node, direction</span>', 'Loads on nodes', 'Loads off nodes', 'Intended net force', 'Load applied at node', 'Support reaction'],
+      sol.dof.list.map(d => {
+        const i = d.index;
+        return {
+          cls: d.restrained ? 'restrained' : '',
+          cells: [d.num, { html: dofName(sol, i, h), cls: 'left' }, fmt(sol.Fnet[i]), fmt(sol.FEF[i]), fmt(sol.netSum[i]), fmt(sol.P[i]),
+            { html: d.restrained ? fmt(sol.reactions[i]) : '—', cls: 'result' }],
+        };
+      }));
+
+    $('equilCheck').textContent = (sol.equilibrium.Fy === 0 && sol.equilibrium.M === 0)
+      ? 'Equilibrium check for the intended structure: the sum of vertical forces and the sum of moments about node A are both zero.'
+      : `Equilibrium check: ΣFy = ${fmt(sol.equilibrium.Fy)}, ΣM about A = ${fmt(sol.equilibrium.M)}.`;
+
+    drawStructure('scene-reactions', { title: 'Intended structure with reactions', reactions: true });
+    renderDiagrams();
+  }
+
+  function renderMemberSuperposition() {
+    const { sol } = cur, mb = sol.members[activeIndex()], host = $('memberSuperHost');
+    if (!sol.solved) return;
+    const names = ['V<sub>S</sub>', 'M<sub>S</sub>', 'V<sub>E</sub>', 'M<sub>E</sub>'];
+    const rowLabels = names.map((html, i) => ({ html, cls: i % 2 ? 'dof-r' : 'dof-y' }));
+    host.replaceChildren(
+      div('sys-note', `Member ${esc(mb.name)}: loads on nodes + loads off nodes = intended structure`),
+      sysRow([{ rows: asCol(mb.qOn) }, '+', { rows: asCol(mb.fef) }, '=', { rows: asCol(mb.q), rowLabels }]),
+    );
+  }
+
+  function renderDiagrams() {
+    const { model: m, sol, pts } = cur, u = units(), grid = $('diagramGrid');
+    grid.replaceChildren();
+    const Ltot = m.members[0].L + m.members[1].L;
+    const nodeX = [0, m.members[0].L, Ltot];
+    const COLS = [['off', 'Loads off nodes', '#64748b'], ['on', 'Loads on nodes', '#64748b'], ['total', 'Intended structure', '#2563eb']];
+    const ROWS = [['V', 'Shear, V', u.F], ['M', 'Bending moment, M', u.FL], ['v', 'Deflection, v', u.L]];
+    const W = 300, H = 150, xPad = 16, midY = 78, amp = 50;
+    const px = X => xPad + (X / Ltot) * (W - 2 * xPad);
+    const cursors = [];
+    const setCursor = i => cursors.forEach(fn => fn(i));
+    const addOperator = c => {
+      if (c === 0) return;
+      const op = div('dg-op');
+      op.textContent = c === 1 ? '+' : '=';
+      grid.appendChild(op);
+    };
+
+    COLS.forEach(([, title], c) => {
+      if (c > 0) grid.appendChild(div('dg-op'));
+      const t = div('dg-coltitle');
+      t.textContent = title;
+      grid.appendChild(t);
+    });
+
+    sol.members.forEach(mb => {
+      const head = div('dg-rowhead');
+      head.appendChild(div('dg-rowtitle')).textContent = `Free body diagram, member ${mb.name}`;
+      grid.appendChild(head);
+      const endForces = { off: mb.fef, on: mb.qOn, total: mb.q };
+      COLS.forEach(([col, colTitle], c) => {
+        addOperator(c);
+        drawMemberFBD(grid.appendChild(div('dg-fbd')), mb, endForces[col], col !== 'on', `Free body diagram of member ${mb.name}, ${colTitle}`);
+      });
+    });
+
+    ROWS.forEach(([key, title, unit]) => {
+      const head = div('dg-rowhead');
+      const tt = head.appendChild(div('dg-rowtitle'));
+      tt.textContent = `${title} (${unit})`;
+      const readout = head.appendChild(div('dg-readout'));
+      grid.appendChild(head);
+
+      const yMax = Math.max(...pts.flatMap(p => [Math.abs(p.off[key]), Math.abs(p.on[key]), Math.abs(p.total[key])])) || 1;
+      const py = v => midY - (v / yMax) * amp;
+
+      COLS.forEach(([col, colTitle, color], c) => {
+        addOperator(c);
+        const host = grid.appendChild(div('dg-plot'));
+        const svg = S('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', tabindex: 0, 'aria-label': `${title}, ${colTitle}` }, host);
+        S('line', { x1: xPad, y1: midY, x2: W - xPad, y2: midY, stroke: '#9ca3af', 'stroke-width': 1 }, svg);
+        nodeX.forEach((X, i) => {
+          S('line', { x1: px(X), y1: midY - 3, x2: px(X), y2: midY + 3, stroke: '#9ca3af', 'stroke-width': 1 }, svg);
+          const t = S('text', { x: px(X), y: H - 4, class: 'dg-node' }, svg);
+          t.textContent = NODE_NAMES[i];
+        });
+        const line = pts.map(p => `${px(p.X).toFixed(2)},${py(p[col][key]).toFixed(2)}`);
+        S('polygon', { points: `${px(0)},${midY} ${line.join(' ')} ${px(Ltot)},${midY}`, fill: color, 'fill-opacity': 0.14 }, svg);
+        S('polyline', { points: line.join(' '), fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+
+        // Label only the largest and smallest values.
+        let iMax = 0, iMin = 0;
+        pts.forEach((p, i) => {
+          if (p[col][key] > pts[iMax][col][key]) iMax = i;
+          if (p[col][key] < pts[iMin][col][key]) iMin = i;
+        });
+        const tag = (i, above) => {
+          const v = pts[i][col][key];
+          if (Math.abs(v) < 0.02 * yMax) return;
+          const x = Math.min(W - 34, Math.max(34, px(pts[i].X)));
+          const y = above ? Math.max(16, py(v) - 6) : Math.min(H - 16, py(v) + 13);
+          const t = S('text', { x, y, class: 'dg-val', 'text-anchor': 'middle' }, svg);
+          t.textContent = fs(v);
+        };
+        tag(iMax, true);
+        tag(iMin, false);
+
+        const hair = S('line', { y1: 8, y2: H - 16, stroke: '#111', 'stroke-width': 1, visibility: 'hidden' }, svg);
+        const dot = S('circle', { r: 4, fill: color, stroke: '#fff', 'stroke-width': 2, visibility: 'hidden' }, svg);
+        cursors.push(i => {
+          const vis = i == null ? 'hidden' : 'visible';
+          hair.setAttribute('visibility', vis);
+          dot.setAttribute('visibility', vis);
+          if (i == null) return;
+          const X = px(pts[i].X);
+          hair.setAttribute('x1', X); hair.setAttribute('x2', X);
+          dot.setAttribute('cx', X); dot.setAttribute('cy', py(pts[i][col][key]));
+        });
+
+        const nearest = clientX => {
+          const r = svg.getBoundingClientRect();
+          const X = ((clientX - r.left) / r.width * W - xPad) / (W - 2 * xPad) * Ltot;
+          let best = 0;
+          pts.forEach((p, i) => { if (Math.abs(p.X - X) < Math.abs(pts[best].X - X)) best = i; });
+          return best;
+        };
+        let kbIndex = 0;
+        svg.addEventListener('pointermove', e => setCursor(nearest(e.clientX)));
+        svg.addEventListener('pointerleave', () => setCursor(null));
+        svg.addEventListener('focus', () => setCursor(kbIndex));
+        svg.addEventListener('blur', () => setCursor(null));
+        svg.addEventListener('keydown', e => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          kbIndex = Math.max(0, Math.min(pts.length - 1, kbIndex + (e.key === 'ArrowRight' ? 1 : -1)));
+          setCursor(kbIndex);
+        });
+      });
+
+      cursors.push(i => {
+        if (i == null) { readout.textContent = ''; return; }
+        const p = pts[i];
+        readout.textContent = `x = ${fs(p.X)} ${u.L}:  ${fmt(p.off[key])} + ${fmt(p.on[key])} = ${fmt(p.total[key])} ${unit}`;
+      });
+    });
+  }
+
+  // ============================================================================
+  // UPDATE CYCLE AND EVENT WIRING
+  // ============================================================================
+  function setHover(i) {
+    hoverMember = i;
+    if (cur && cur.sol) { renderMemberPanels(); renderMemberSuperposition(); }
+  }
+
+  function setLocked(i) {
+    lockedMember = i;
+    hoverMember = null;
+    if (cur && cur.sol) { renderMemberPanels(); renderMemberSuperposition(); }
+  }
+
+  function renderStatus(model, sol) {
+    const el = $('bmStatus');
+    if (!model.ok) {
+      el.className = 'bm-status bm-bad';
+      el.textContent = 'Enter positive values of L, E, and I for both members.';
+      return;
+    }
+    if (!sol.stable) {
+      el.className = 'bm-status bm-bad';
+      el.textContent = 'Unstable: at least two restrained degrees of freedom are needed. Add a support to solve.';
+      return;
+    }
+    el.className = 'bm-status';
+    const count = `${sol.Nr} restrained degrees of freedom − 2 equilibrium equations`;
+    el.textContent = sol.degree > 0
+      ? `Statically indeterminate to degree ${sol.degree} (${count}).`
+      : `Statically determinate (${count}). The method still applies, but this beam is not indeterminate.`;
+  }
+
+  function renderAll() {
+    const { model, sol } = cur;
+    renderStatus(model, sol);
+    refreshUnitSpans();
+    drawStructure('beam-root', { interactive: true, title: 'Beam with intended loads. Select a member.' });
+    drawStructure('scene-intended', { title: 'Intended structure' });
+    drawOffScene();
+    drawOnScene();
+    drawDofScene();
+    renderFefTable();
+    renderOnTable();
+    renderGlobalSystem();
+    renderMemberPanels();
+    renderSolveForms();
+    renderFinal();
+  }
+
+  let pending = false;
+  /** Recomputes on the next frame; any input change returns K d = F to its unsolved form. */
+  function scheduleUpdate() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(() => {
+      pending = false;
+      showSolved = false;
+      $('solveMsg').textContent = '';
+      const model = readModel();
+      if (!model.ok) { cur = null; renderStatus(model, null); return; }
+      const sol = BeamEngine.solve(model);
+      cur = { model, sol, pts: sol.solved ? BeamEngine.diagrams(sol) : null };
+      renderAll();
+    });
+  }
+
+  buildNodePanel();
+  renderLoadRows();
+
+  for (let i = 0; i < 2; i++) {
+    ['L', 'E', 'I'].forEach(p => $(p + i).addEventListener('input', () => scheduleUpdate()));
+  }
+  ['forceUnits', 'lengthUnits', 'applyFactor', 'KpartShowLines'].forEach(id => {
+    $(id).addEventListener('input', () => scheduleUpdate());
+  });
+
+  $('addLoadBtn').addEventListener('click', () => {
+    const member = activeIndex();
+    loadRows.push({ member, type: 'point', values: defaultValues('point', member) });
+    renderLoadRows();
+    scheduleUpdate();
+  });
+
+  $('loadClearBtn').addEventListener('click', () => {
+    loadRows = [];
+    nodeInputs.forEach(n => { n.Fy.value = 0; n.M.value = 0; n.v.value = 0; n.th.value = 0; });
+    renderLoadRows();
+    scheduleUpdate();
+  });
+
+  $('solveBtn').addEventListener('click', () => {
+    if (!cur) return;
+    if (!cur.sol.solved) { $('solveMsg').textContent = 'The beam is unstable, so it cannot be solved.'; return; }
+    showSolved = true;
+    renderGlobalSystem();
+    const u = units();
+    $('solveMsg').textContent = `Solved: d (${u.L}, rad) and net forces (${u.F}, ${u.FL}) are filled in above.`;
+  });
+
+  scheduleUpdate();
+})();
+</script>
+
+
+</section>
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/kendrickshepherd\.github\.io\/StiffnessMethodTrusses\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
